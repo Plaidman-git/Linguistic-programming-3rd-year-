@@ -1,0 +1,1093 @@
+main.py
+
+from tkinter import *
+from tkinter import ttk
+import tkinter
+
+from Module1 import click1
+from Module2 import click2
+from Module3 import click3
+from Module4 import click4
+
+# Главное окно:
+root = Tk()
+root.title("Boiler")
+root.geometry("1280x360")
+root["bg"]="gray"
+label33 = ttk.Label(root, text="Программа для расчёта выбросов при сжигании топлива в котлах производительностью до 30 т/ч.")
+label33.place(x=8, y=10)
+label34 = ttk.Label(root, text="Разработал студент 407 группы Князев И.С.")
+label34.place(x=8, y=30)
+
+# Кнопки в главном окне:
+button1 = tkinter.Button(text="Расчёт выбросов твёрдых частиц летучей золы и недогоревшего топлива, выбрасываемых в атмосферу с дымовыми газами котлоагрегата в единицу времени при сжигании твёрдого топлива и мазута (Mtv).", width = 180, command=click1)
+button1.place(x=8, y=100)
+button2 = tkinter.Button(text="Расчёт выбросов окислов серы в пересчёте на SO2, выбрасываемых в атмосферу с дымовыми газами котлоагрегатов в единицу времени (MSO2 и MSO2H2S).", width = 180, command=click2)
+button2.place(x=8, y=150)
+button3 = tkinter.Button(text="Расчёт выбросов окиси углерода в единицу времени (Mco).", width = 180, command=click3)
+button3.place(x=8, y=200)
+button4 = tkinter.Button(text="Расчёт выбросов окислов азота (MNO2 и MNOx).", width = 180, command=click4)
+button4.place(x=8, y=250)
+
+root.mainloop()
+
+Module1.py
+
+from tkinter import *
+from tkinter import ttk
+import tkinter
+
+from Module2 import *
+from Module3 import *
+from Module4 import *
+
+# 1. Расчёт выбросов твёрдых частиц летучей золы и недогоревшего топлива (т/год, г/с), выбрасываемых в атмосферу с дымовыми газами котлоагрегата в единицу времени при сжигании твёрдого топлива и мазута.
+# Mtv = B*Ar*f*(1-h3),    (1)
+def click1():
+    window1 = Tk()
+    window1.title("Расчёт выбросов твёрдых частиц летучей золы и недогоревшего топлива, выбрасываемых в атмосферу с дымовыми газами котлоагрегата в единицу времени при сжигании твёрдого топлива и мазута.")
+    window1.geometry("850x460")
+    window1["bg"] = "gray"
+
+    # Окошко с результатом 1.
+    def show_message1():
+        window11 = Tk()
+        window11.title("Результат Mtv")
+        window11.geometry("400x200")
+        window11["bg"] = "gray"
+
+        # Получение данных.
+        ayH = float(ayH_1.get())
+        GyH = float(GyH_1.get())
+        B = float(B_1.get())
+        Ar = float(Ar_1.get())
+        h3 = float(h3_1.get())
+
+        # Расчёты.
+        f = (ayH/ 100) / (100 - GyH) # Бурые и каменные угли: 0.0026 (Таблица 1).
+        Mtv = B * Ar * f * (1 - h3/100)
+        Mtv = str(Mtv) + " т/год"
+
+        # Вывод результата расчётов.
+        label6 = ttk.Label(window11, text='По формуле 1: ' + Mtv)
+        label6.place(x=8, y=10)
+
+    # B - расход топлива, т/год, г/с.
+    label1 = ttk.Label(window1, text='Расход топлива, т/год')
+    label1.place(x=8, y=10)
+    B_1 = ttk.Entry(window1, font=("arial", 20))
+    B_1.place(x=8, y=30)
+    B_1.insert(0, "150")
+
+    # Ar - зольность топлива на рабочую массу, %.
+    label2 = ttk.Label(window1, text='Зольность топлива на рабочую массу, %')
+    label2.place(x=8, y=80)
+    Ar_1 = ttk.Entry(window1, font=("arial", 20))
+    Ar_1.place(x=8, y=100)
+    Ar_1.insert(0, "31") # Значение (%): Кизеловский бассейн (Приложение 1).
+
+    # h3 - доля твёрдых частиц, улавливаемых в золоуловителях.
+    label3 = ttk.Label(window1, text='Доля твёрдых частиц, улавливаемых в золоуловителях, %')
+    label3.place(x=8, y=150)
+    h3_1 = ttk.Entry(window1, font=("arial", 20))
+    h3_1.place(x=8, y=170)
+    h3_1.insert(0, "55")
+
+    # ayH - доля золы топлива в уносе, %.
+    label4 = ttk.Label(window1, text='Доля золы топлива в уносе, %')
+    label4.place(x=8, y=220)
+    ayH_1 = ttk.Entry(window1, font=("arial", 20))
+    ayH_1.place(x=8, y=240)
+    ayH_1.insert(0, "60")
+
+    # GyH - содержание горючих в уносе, %.
+    label5 = ttk.Label(window1, text='Содержание горючих веществ в уносе, %')
+    label5.place(x=8, y=290)
+    GyH_1 = ttk.Entry(window1, font=("arial", 20))
+    GyH_1.place(x=8, y=310)
+    GyH_1.insert(0, "65")
+
+    # Кнопка для расчёта.
+    btn1 = ttk.Button(window1, text = "Расчёт", command=show_message1)
+    btn1.place(x=8, y=360)
+
+    # Выбор топлива.
+    def fuel1():
+        Ar_1.delete("0", END)
+        Ar_1.insert(0, "31")  # Значение (%): Кизеловский бассейн (Приложение 1).
+    Fuel1_1 = tkinter.Button(window1, text = "Кизеловский бассейн", width=60, command=fuel1)
+    Fuel1_1.place(x=400, y=10)
+
+    def fuel2():
+        Ar_1.delete("0", END)
+        Ar_1.insert(0, "29.9")
+    Fuel2_1 = tkinter.Button(window1, text = "Челябинский бассейн", width=60, command=fuel2)
+    Fuel2_1.place(x=400, y=40)
+
+    def fuel3():
+        Ar_1.delete("0", END)
+        Ar_1.insert(0, "6.6")
+    Fuel3_1 = tkinter.Button(window1, text = "Южно-Уральский бассейн", width=60, command=fuel3)
+    Fuel3_1.place(x=400, y=70)
+
+    def fuel4():
+        Ar_1.delete("0", END)
+        Ar_1.insert(0, "27.6")
+    Fuel4_1 = tkinter.Button(window1, text = "Карагандинский бассейн", width=60, command=fuel4)
+    Fuel4_1.place(x=400, y=100)
+
+    def fuel5():
+        Ar_1.delete("0", END)
+        Ar_1.insert(0, "32.6")
+    Fuel5_1 = tkinter.Button(window1, text = "Экибастузский бассейн", width=60, command=fuel5)
+    Fuel5_1.place(x=400, y=130)
+
+    def fuel6():
+        Ar_1.delete("0", END)
+        Ar_1.insert(0, "11.3")
+    Fuel6_1 = tkinter.Button(window1, text = "Тургайский бассейн", width=60, command=fuel6)
+    Fuel6_1.place(x=400, y=160)
+
+    def fuel7():
+        Ar_1.delete("0", END)
+        Ar_1.insert(0, "13.2")
+    Fuel7_1 = tkinter.Button(window1, text = "Кузнецкий бассейн", width=60, command=fuel7)
+    Fuel7_1.place(x=400, y=190)
+
+    def fuel8():
+        Ar_1.delete("0", END)
+        Ar_1.insert(0, "11.7")
+    Fuel8_1 = tkinter.Button(window1, text = "Горловский бассейн", width=60, command=fuel8)
+    Fuel8_1.place(x=400, y=220)
+
+    def fuel9():
+        Ar_1.delete("0", END)
+        Ar_1.insert(0, "11")
+    Fuel9_1 = tkinter.Button(window1, text = "Кузнецкий бассейн (открытая добыча)", width=60, command=fuel9)
+    Fuel9_1.place(x=400, y=250)
+
+    def fuel10():
+        Ar_1.delete("0", END)
+        Ar_1.insert(0, "6.7")
+    Fuel10_1 = tkinter.Button(window1, text = "Канско-Ачинский бассейн", width=60, command=fuel10)
+    Fuel10_1.place(x=400, y=280)
+
+    def fuel11():
+        Ar_1.delete("0", END)
+        Ar_1.insert(0, "17.2")
+    Fuel11_1 = tkinter.Button(window1, text = "Минусинский бассейн", width=60, command=fuel11)
+    Fuel11_1.place(x=400, y=310)
+
+    def fuel12():
+        Ar_1.delete("0", END)
+        Ar_1.insert(0, "27")
+    Fuel12_1 = tkinter.Button(window1, text = "Иркутский бассейн", width=60, command=fuel12)
+    Fuel12_1.place(x=400, y=340)
+
+    def fuel13():
+        Ar_1.delete("0", END)
+        Ar_1.insert(0, "16.9")
+    Fuel13_1 = tkinter.Button(window1, text = "Гусиноозерское месторождение", width=60, command=fuel13)
+    Fuel13_1.place(x=400, y=370)
+
+    def fuel14():
+        Ar_1.delete("0", END)
+        Ar_1.insert(0, "13.5")
+    Fuel14_1 = tkinter.Button(window1, text = "Месторождения Северо-Восточных районов (Бурятская ССР)", width=60, command=fuel14)
+    Fuel14_1.place(x=400, y=400)
+
+    def fuel15():
+        Ar_1.delete("0", END)
+        Ar_1.insert(0, "16.9")
+        GyH_1.delete("0", END)
+        GyH_1.insert(0, "10")
+        ayH_1.delete("0", END)
+        ayH_1.insert(0, "15")
+        h3_1.delete("0", END)
+        h3_1.insert(0, "63")
+        B_1.delete("0", END)
+        B_1.insert(0, "175")
+    Fuel15_1 = ttk.Button(window1, text = "Тест 1", command=fuel15)
+    Fuel15_1.place(x=98, y=360)
+
+    def fuel16():
+        Ar_1.delete("0", END)
+        Ar_1.insert(0, "6.7")
+        GyH_1.delete("0", END)
+        GyH_1.insert(0, "50")
+        ayH_1.delete("0", END)
+        ayH_1.insert(0, "75")
+        h3_1.delete("0", END)
+        h3_1.insert(0, "78")
+        B_1.delete("0", END)
+        B_1.insert(0, "300")
+    Fuel15_1 = ttk.Button(window1, text = "Тест 2", command=fuel16)
+    Fuel15_1.place(x=188, y=360)
+
+Module2.py
+
+from tkinter import *
+from tkinter import ttk
+import tkinter
+
+from Module1 import *
+from Module3 import *
+from Module4 import *
+
+# 2. Расчёт выбросов окислов серы в пересчёте на SO2 (т/год, т/ч, г/с), выбрасываемых в атмосферу с дымовыми газами котлоагрегатов в единицу времени, выполняется по формуле:
+# MSO2 = 0,02*B*Sr*(1-hSO2')*(1-hSO2''), (2)
+def click2():
+    window2 = Tk()
+    window2.title("Расчёт выбросов окислов серы в пересчёте на SO2, выбрасываемых в атмосферу с дымовыми газами котлоагрегатов в единицу времени")
+    window2.geometry("1088x450")
+    window2["bg"]="gray"
+
+    def show_message2():
+        window21 = Tk()
+        window21.title("Результат MS04")
+        window21.geometry("400x200")
+        window21["bg"] = "gray"
+
+        # Получение данных.
+        H2S = float(H2S_2.get())
+        B = float(B_2.get())
+        Sr = float(Sr_2.get())
+        dhSO2 = float(dhSO2_2.get())
+        d2hSO2 = float(d2hSO2_2.get())
+
+        # Расчёты.
+        MSO2 = 0.02*B*Sr*(1-dhSO2)*(1-d2hSO2)
+        MSO2 = str(MSO2) + " т/год"
+        MSO2H2S = "Не вычисляется"
+        if H2S != 0:
+            MSO2H2S = 1.88 * 10**(-2) * H2S
+            MSO2H2S = str(MSO2H2S) + " т/год"
+
+        # Вывод результата расчётов.
+        label12 = ttk.Label(window21, text='По формуле 2: ' + MSO2)
+        label12.place(x=8, y=10)
+        label13 = ttk.Label(window21, text='По формуле 3: ' + MSO2H2S)
+        label13.place(x=8, y=50)
+
+    # B - расход, т/год, т/ч, г/с (твёрдого и жидкого топлива); тыс.м^3/год, тыс.м^3/ч, л/с (газообразного топлива);
+    label7 = ttk.Label(window2, text='расход, т/год, т/ч, г/с (твёрдого и жидкого топлива); тыс.м^3/год, тыс.м^3/ч, л/с (газообразного топлива)')
+    label7.place(x=8, y=10)
+    B_2 = ttk.Entry(window2, font=("arial", 20))
+    B_2.place(x=8, y=30)
+    B_2.insert(0, "150")
+
+    # Sr - содержание серы в топливе на рабочую массу, %, (для газзобразного топлива в кг/100м^3);
+    label8 = ttk.Label(window2, text='Sr - содержание серы в топливе на рабочую массу, %, (для газзобразного топлива в кг/100м^3)')
+    label8.place(x=8, y=80)
+    Sr_2 = ttk.Entry(window2, font=("arial", 20))
+    Sr_2.place(x=8, y=100)
+    Sr_2.insert(0, "6.1") # Значение (%): Каменный уголь (Приложение 1).
+
+    # hSO2' - доля окислов серы, связываемых летучей золой топлива, принимается при сжигании сланцев эстонских и ленинградских равной 0,8; остальных сланцев - 0,5; для углей Канско-Ачинского бассейна - 0,2 (для березовских - 0,5); для торфа - 0,15; экибастузских углей - 0,02; прочих углей - 0,1; мазута - 0,02; газа - 0,0;
+    label9 = ttk.Label(window2, text='доля окислов серы, связываемых летучей золой топлива')
+    label9.place(x=8, y=150)
+    dhSO2_2 = ttk.Entry(window2, font=("arial", 20))
+    dhSO2_2.place(x=8, y=170)
+    dhSO2_2.insert(0, "0.8") # < 1.
+
+    # hSO2'' - доля окислов серы,улавливаемых в золоуловителе, принимается равной нулю для сухих золоуловителей, для мокрых - в зависимости от щелочности орошающей воды.
+    label10 = ttk.Label(window2, text='доля окислов серы,улавливаемых в золоуловителе')
+    label10.place(x=8, y=220)
+    d2hSO2_2 = ttk.Entry(window2, font=("arial", 20))
+    d2hSO2_2.place(x=8, y=240)
+    d2hSO2_2.insert(0, "0.6") # < 1.
+
+    # При наличии в топливе сероводорода расчёт выбросов дополнительного количества окислов серы в пересчёте на SO2 ведётся по формуле:
+    # MSO2 = 1,88 * 10^(-2) * |H2S|, (3)
+
+    # |H2S| - содержание сероводорода в топливе, %.
+    label11 = ttk.Label(window2, text='Содержание сероводорода в топливе, %. Если неизвестно, оставьте 0')
+    label11.place(x=8, y=290)
+    H2S_2 = ttk.Entry(window2, font=("arial", 20))
+    H2S_2.place(x=8, y=310)
+    H2S_2.insert(0, "0")
+
+    # Кнопка для расчёта.
+    btn2 = ttk.Button(window2, text="Расчёт", command=show_message2)
+    btn2.place(x=8, y=360)
+
+    # Выбор топлива.
+    def fuel1():
+        Sr_2.delete("0", END)
+        Sr_2.insert(0, "0.61")
+    Fuel1_2 = tkinter.Button(window2, text="Кизеловский бассейн", width=60, command=fuel1)
+    Fuel1_2.place(x=650, y=10)
+
+    def fuel2():
+        Sr_2.delete("0", END)
+        Sr_2.insert(0, "1")
+    Fuel2_2 = tkinter.Button(window2, text="Челябинский бассейн", width=60, command=fuel2)
+    Fuel2_2.place(x=650, y=40)
+
+    def fuel3():
+        Sr_2.delete("0", END)
+        Sr_2.insert(0, "0.7")
+    Fuel3_2 = tkinter.Button(window2, text="Южно-Уральский бассейн", width=60, command=fuel3)
+    Fuel3_2.place(x=650, y=70)
+
+    def fuel4():
+        Sr_2.delete("0", END)
+        Sr_2.insert(0, "0.8")
+    Fuel4_2 = tkinter.Button(window2, text = "Карагандинский бассейн", width=60, command=fuel4)
+    Fuel4_2.place(x=650, y=100)
+
+    def fuel5():
+        Sr_2.delete("0", END)
+        Sr_2.insert(0, "0.7")
+    Fuel5_2 = tkinter.Button(window2, text = "Экибастузский бассейн", width=60, command=fuel5)
+    Fuel5_2.place(x=650, y=130)
+
+    def fuel6():
+        Sr_2.delete("0", END)
+        Sr_2.insert(0, "1.6")
+    Fuel6_2 = tkinter.Button(window2, text = "Тургайский бассейн", width=60, command=fuel6)
+    Fuel6_2.place(x=650, y=160)
+
+    def fuel7():
+        Sr_2.delete("0", END)
+        Sr_2.insert(0, "0.4")
+    Fuel7_2 = tkinter.Button(window2, text = "Кузнецкий бассейн", width=60, command=fuel7)
+    Fuel7_2.place(x=650, y=190)
+
+    def fuel8():
+        Sr_2.delete("0", END)
+        Sr_2.insert(0, "0.4")
+    Fuel8_2 = tkinter.Button(window2, text = "Горловский бассейн", width=60, command=fuel8)
+    Fuel8_2.place(x=650, y=220)
+
+    def fuel9():
+        Sr_2.delete("0", END)
+        Sr_2.insert(0, "0.4")
+    Fuel9_2 = tkinter.Button(window2, text = "Кузнецкий бассейн (открытая добыча)", width=60, command=fuel9)
+    Fuel9_2.place(x=650, y=250)
+
+    def fuel10():
+        Sr_2.delete("0", END)
+        Sr_2.insert(0, "0.2")
+    Fuel10_2 = tkinter.Button(window2, text = "Канско-Ачинский бассейн", width=60, command=fuel10)
+    Fuel10_2.place(x=650, y=280)
+
+    def fuel11():
+        Sr_2.delete("0", END)
+        Sr_2.insert(0, "0.5")
+    Fuel11_2 = tkinter.Button(window2, text = "Минусинский бассейн", width=60, command=fuel11)
+    Fuel11_2.place(x=650, y=310)
+
+    def fuel12():
+        Sr_2.delete("0", END)
+        Sr_2.insert(0, "1")
+    Fuel12_2 = tkinter.Button(window2, text = "Иркутский бассейн", width=60, command=fuel12)
+    Fuel12_2.place(x=650, y=340)
+
+    def fuel13():
+        Sr_2.delete("0", END)
+        Sr_2.insert(0, "0.7")
+    Fuel13_2 = tkinter.Button(window2, text = "Гусиноозерское месторождение", width=60, command=fuel13)
+    Fuel13_2.place(x=650, y=370)
+
+    def fuel14():
+        Sr_2.delete("0", END)
+        Sr_2.insert(0, "0.3")
+    Fuel14_2 = tkinter.Button(window2, text = "Месторождения Северо-Восточных районов (Бурятская ССР)", width=60, command=fuel14)
+    Fuel14_2.place(x=650, y=400)
+
+    def fuel15():
+        Sr_2.delete("0", END)
+        Sr_2.insert(0, "0.7")
+        B_2.delete("0", END)
+        B_2.insert(0, "150")
+        dhSO2_2.delete("0", END)
+        dhSO2_2.insert(0, "0.2")
+        d2hSO2_2.delete("0", END)
+        d2hSO2_2.insert(0, "0.3")
+        H2S_2.delete("0", END)
+        H2S_2.insert(0, "0")
+    Fuel15_2 = ttk.Button(window2, text = "Тест 1", command=fuel15)
+    Fuel15_2.place(x=98, y=360)
+
+    def fuel16():
+        Sr_2.delete("0", END)
+        Sr_2.insert(0, "0.5")
+        B_2.delete("0", END)
+        B_2.insert(0, "300")
+        dhSO2_2.delete("0", END)
+        dhSO2_2.insert(0, "0.5")
+        d2hSO2_2.delete("0", END)
+        d2hSO2_2.insert(0, "0.7")
+        H2S_2.delete("0", END)
+        H2S_2.insert(0, "24")
+    Fuel16_2 = ttk.Button(window2, text = "Тест 2", command=fuel16)
+    Fuel16_2.place(x=188, y=360)
+
+Module3.py
+
+from tkinter import *
+from tkinter import ttk
+import tkinter
+
+from Module1 import *
+from Module2 import *
+from Module4 import *
+
+# 3. Расчёт выбросов окиси углерода в единицу времени (т/год, г/с) выполняется по формуле:
+# Mco = 0,001 * Cco * B * (1 - q4/100), (4)
+def click3():
+    window3 = Tk()
+    window3.title("Расчёт выбросов окиси углерода в единицу времени")
+    window3.geometry("1028x450")
+    window3["bg"]="gray"
+
+    def show_message3():
+        # Настройки окна.
+        window31 = Tk()
+        window31.title("Результат Mco")
+        window31.geometry("400x200")
+        window31["bg"] = "gray"
+
+        # Получение данных.
+        q4 = float(q4_3.get())
+        B = float(B_3.get())
+        q3 = float(q3_3.get())
+        R = float(R_3.get())
+        Qir = float(Qir_3.get())
+
+        # Расчёты.
+        # Cco - выход окиси углерода при сжигании топлива, в кг на тонну или на тыс. м^3 топлива. Рассчитывается по формуле:
+        # Cco = q3 * R * Qir,    (5)
+        Cco = q3/100 * R * Qir
+        Mco = 0.001 * Cco * B * (1 - q4/100)
+        Mco = str(Mco) + " т/год"
+
+        # Вывод результата расчётов.
+        label19 = ttk.Label(window31, text='По формуле 4: ' + Mco)
+        label19.place(x=8, y=10)
+
+    # B - расход топлива, т/год, тм^3/год, г/с, л/с.
+    label14 = ttk.Label(window3, text='B - расход топлива, т/год')
+    label14.place(x=8, y=10)
+    B_3 = ttk.Entry(window3, font=("arial", 20))
+    B_3.place(x=8, y=30)
+    B_3.insert(0, "150")
+
+    # q3 - потери тепла вследствие химической неполноты сгорания топлива, %.
+    label15 = ttk.Label(window3, text='q3 - потери тепла вследствие химической неполноты сгорания топлива, %')
+    label15.place(x=8, y=80)
+    q3_3 = ttk.Entry(window3, font=("arial", 20))
+    q3_3.place(x=8, y=100)
+    q3_3.insert(0, "1") #Значение: Каменный уголь 0.5-1 (таблица 2).
+
+    # R - коэффициент, учитывающий долю потери тепла вследствие химической неполноты сгорания топлива, обусловленную наличием в продуктах неполного сгорания окиси углерода, принимается для твёрдого топлива - 1,0; газа - 0,5; мазута - 0,65;
+    label16 = ttk.Label(window3, text='R - коэффициент потери доли тепла.')
+    label16.place(x=8, y=150)
+    R_3 = ttk.Entry(window3, font=("arial", 20))
+    R_3.place(x=8, y=170)
+    R_3.insert(0, "0.65")
+
+    # Qir - низшая теплота сгорания натурального топлива, МДж/кг, МДж/м^3;
+    label17 = ttk.Label(window3, text='Qir - низшая теплота сгорания натурального топлива, МДж/кг, МДж/м^3')
+    label17.place(x=8, y=220)
+    Qir_3 = ttk.Entry(window3, font=("arial", 20))
+    Qir_3.place(x=8, y=240)
+    Qir_3.insert(0, "4680") # Значение (4680 ккал/кг): Кизеловский бассейн (Приложение 1).
+
+    # q4 - потери тепла вследствие механической неполноты сгорания топлива, %.
+    label18 = ttk.Label(window3, text='q4 - потери тепла вследствие механической неполноты сгорания топлива, %')
+    label18.place(x=8, y=290)
+    q4_3 = ttk.Entry(window3, font=("arial", 20))
+    q4_3.place(x=8, y=310)
+    q4_3.insert(0, "5") # Значение (%): Каменный уголь (таблица 2).
+
+    # Кнопка для расчёта.
+    btn3 = ttk.Button(window3, text="Расчёт", command=show_message3)
+    btn3.place(x=8, y=360)
+
+    # Выбор топлива.
+    def fuel1():
+        Qir_3.delete("0", END)
+        Qir_3.insert(0, "4680")
+    Fuel1_3 = tkinter.Button(window3, text="Кизеловский бассейн", width=40, command=fuel1)
+    Fuel1_3.place(x=500, y=10)
+
+    def fuel2():
+        Qir_3.delete("0", END)
+        Qir_3.insert(0, "3380")
+    Fuel2_3 = tkinter.Button(window3, text="Челябинский бассейн", width=40, command=fuel2)
+    Fuel2_3.place(x=500, y=40)
+
+    def fuel3():
+        Qir_3.delete("0", END)
+        Qir_3.insert(0, "2170")
+    Fuel3_3 = tkinter.Button(window3, text="Южно-Уральский бассейн", width=40, command=fuel3)
+    Fuel3_3.place(x=500, y=70)
+
+    def fuel4():
+        Qir_3.delete("0", END)
+        Qir_3.insert(0, "5030")
+    Fuel4_3 = tkinter.Button(window3, text="Карагандинский бассейн", width=40, command=fuel4)
+    Fuel4_3.place(x=500, y=100)
+
+    def fuel5():
+        Qir_3.delete("0", END)
+        Qir_3.insert(0, "4510")
+    Fuel5_3 = tkinter.Button(window3, text="Экибастузский бассейн", width=40, command=fuel5)
+    Fuel5_3.place(x=500, y=130)
+
+    def fuel6():
+        Qir_3.delete("0", END)
+        Qir_3.insert(0, "3140")
+    Fuel6_3 = tkinter.Button(window3, text="Тургайский бассейн", width=40, command=fuel6)
+    Fuel6_3.place(x=500, y=160)
+
+    def fuel7():
+        Qir_3.delete("0", END)
+        Qir_3.insert(0, "5460")
+    Fuel7_3 = tkinter.Button(window3, text="Кузнецкий бассейн", width=40, command=fuel7)
+    Fuel7_3.place(x=500, y=190)
+
+    def fuel8():
+        Qir_3.delete("0", END)
+        Qir_3.insert(0, "6220")
+    Fuel8_3 = tkinter.Button(window3, text="Горловский бассейн", width=40, command=fuel8)
+    Fuel8_3.place(x=500, y=220)
+
+    def fuel9():
+        Qir_3.delete("0", END)
+        Qir_3.insert(0, "5110")
+    Fuel9_3 = tkinter.Button(window3, text="Кузнецкий бассейн (открытая добыча)", width=40, command=fuel9)
+    Fuel9_3.place(x=500, y=250)
+
+    def fuel10():
+        Qir_3.delete("0", END)
+        Qir_3.insert(0, "3700")
+    Fuel10_3 = tkinter.Button(window3, text="Канско-Ачинский бассейн", width=40, command=fuel10)
+    Fuel10_3.place(x=500, y=280)
+
+    def fuel11():
+        Qir_3.delete("0", END)
+        Qir_3.insert(0, "4800")
+    Fuel11_3 = tkinter.Button(window3, text="Минусинский бассейн", width=40, command=fuel11)
+    Fuel11_3.place(x=500, y=310)
+    def fuel12():
+        Qir_3.delete("0", END)
+        Qir_3.insert(0, "4270")
+    Fuel12_3 = tkinter.Button(window3, text="Иркутский бассейн", width=40, command=fuel12)
+    Fuel12_3.place(x=500, y=340)
+
+    def fuel13():
+        Qir_3.delete("0", END)
+        Qir_3.insert(0, "4020")
+    Fuel13_3 = tkinter.Button(window3, text="Гусиноозерское месторождение", width=40, command=fuel13)
+    Fuel13_3.place(x=500, y=370)
+
+    def fuel14():
+        Qir_3.delete("0", END)
+        Qir_3.insert(0, "5790")
+    Fuel14_3 = tkinter.Button(window3, text="Месторождения Северо-Восточных районов", width=40, command=fuel14)
+    Fuel14_3.place(x=500, y=400)
+
+    def fuel15():
+        q3_3.delete("0", END)
+        q3_3.insert(0, "1")
+        q4_3.delete("0", END)
+        q4_3.insert(0, "2")
+    Fuel15_3 = tkinter.Button(window3, text="Торф кусковой", width=30, command=fuel15)
+    Fuel15_3.place(x=800, y=10)
+
+    def fuel16():
+        q3_3.delete("0", END)
+        q3_3.insert(0, "1")
+        q4_3.delete("0", END)
+        q4_3.insert(0, "6.5")
+    Fuel16_3 = tkinter.Button(window3, text="Бурые угли", width=30, command=fuel16)
+    Fuel16_3.place(x=800, y=40)
+
+    def fuel17():
+        q3_3.delete("0", END)
+        q3_3.insert(0, "0.75")
+        q4_3.delete("0", END)
+        q4_3.insert(0, "5.5")
+    Fuel17_3 = tkinter.Button(window3, text="Каменные угли", width=30, command=fuel17)
+    Fuel17_3.place(x=800, y=70)
+
+    def fuel18():
+        q3_3.delete("0", END)
+        q3_3.insert(0, "2")
+        q4_3.delete("0", END)
+        q4_3.insert(0, "2")
+    Fuel18_3 = tkinter.Button(window3, text="Дрова, дробленые отходы, опилки", width=30, command=fuel18)
+    Fuel18_3.place(x=800, y=100)
+    def fuel19():
+        q3_3.delete("0", END)
+        q3_3.insert(0, "1")
+        q4_3.delete("0", END)
+        q4_3.insert(0, "2")
+    Fuel19_3 = tkinter.Button(window3, text="Дрова, щепа, опилки", width=30, command=fuel19)
+    Fuel19_3.place(x=800, y=130)
+
+    def fuel20():
+        q3_3.delete("0", END)
+        q3_3.insert(0, "2")
+        q4_3.delete("0", END)
+        q4_3.insert(0, "2")
+        Qir_3.delete("0", END)
+        Qir_3.insert(0, "4680")
+        R_3.delete("0", END)
+        R_3.insert(0, "0.25")
+        B_3.delete("0", END)
+        B_3.insert(0, "100")
+    Fuel20_3 = ttk.Button(window3, text="Тест 1", command=fuel20)
+    Fuel20_3.place(x=98, y=360)
+
+    def fuel21():
+        q3_3.delete("0", END)
+        q3_3.insert(0, "3")
+        q4_3.delete("0", END)
+        q4_3.insert(0, "3")
+        Qir_3.delete("0", END)
+        Qir_3.insert(0, "5030")
+        R_3.delete("0", END)
+        R_3.insert(0, "0.45")
+        B_3.delete("0", END)
+        B_3.insert(0, "300")
+    Fuel21_3 = ttk.Button(window3, text="Тест 2", command=fuel21)
+    Fuel21_3.place(x=188, y=360)
+
+
+Module4.py
+
+from tkinter import *
+from tkinter import ttk
+import tkinter
+
+from Module1 import *
+from Module2 import *
+from Module3 import *
+
+# 4. Расчёт выбросов окислов азота.
+# Количество окислов азота (в пересчёте на NO2), выбрасываемых в единицу времени (т/год, г/с), рассчитывается по формуле:
+# MNO2 = 0,001 * B * Qir * KNO2 * (1-beta),  (7)
+def click4():
+    window4 = Tk()
+    window4.title("Расчёт выбросов окислов азота")
+    window4.geometry("1280x620")
+    window4["bg"]="gray"
+
+    def show_message4():
+        window41 = Tk()
+        window41.title("Результат MNO2 и MNOx")
+        window41.geometry("400x200")
+        window41["bg"] = "gray"
+
+        # Получение данных.
+        B = float(B_4.get())
+        Qir = float(Qir_4.get())
+        KNO2 = float(KNO2_4.get())
+        beta = float(beta_4.get())
+        nominal = bool(nominal_4.get())
+        Qf = float(Qf_4.get())
+        Qn = float(Qn_4.get())
+        CNOx = float(CNOx_4.get())
+        q4 = float(q4_4.get())
+        alfayx = float(alfayx_4.get())
+        Vr = float(Vr_4.get())
+
+        # Расчёты.
+        if nominal:
+            MNO2 = 0.001 * B * Qir * KNO2 * (1 - beta)
+        else:
+            MNO2 = 0.001 * B * Qir * KNO2 * ((Qf/Qn)**0.25) * (1-beta)
+        MNO2 = str(MNO2) + " т/год"
+
+        # Значения Vr для некоторых топлив даны в приложении 1. Для газообразного топлива Vr определяется по данным Приложения 2.
+        MNOx = "Не вычисляется"
+        if CNOx != 0:
+            V = Vr * alfayx
+            MNOx = 20.4 * CNOx * V * B * (1 - q4/100)
+            MNOx = str(MNOx) + " т/год"
+
+        # Вывод результата расчётов.
+        label31 = ttk.Label(window41, text='По формуле 7: ' + MNO2)
+        label31.place(x=8, y=10)
+        label32 = ttk.Label(window41, text='По формуле 8: ' + MNOx)
+        label32.place(x=8, y=40)
+
+    # B - расход натурального топлива за рассматриваемый период времени, т/год, тм^3/год, г/с, л/с.
+    label20 = ttk.Label(window4, text='B - расход натурального топлива за рассматриваемый период времени, т/год.')
+    label20.place(x=8, y=10)
+    B_4 = ttk.Entry(window4, font=("arial", 20))
+    B_4.place(x=8, y=30)
+    B_4.insert(0, "150")
+
+    # Qir - теплота сгорания натурального топлива, МДж/кг, МДж/м^3;
+    label21 = ttk.Label(window4, text='Qir - теплота сгорания натурального топлива, МДж/кг.')
+    label21.place(x=8, y=80)
+    Qir_4 = ttk.Entry(window4, font=("arial", 20))
+    Qir_4.place(x=8, y=100)
+    Qir_4.insert(0, "4680") # Значение (ккал/кг): Кизеловский бассейн (Приложение 1).
+
+    # KNO2 - параметр, характеризующий количество окислов азота, образующихся на 1 ГДж тепла, кг/ГДж;
+    label22 = ttk.Label(window4, text='KNO2 - параметр, характеризующий количество окислов азота, образующихся на 1 ГДж тепла, кг/ГДж.')
+    label22.place(x=8, y=150)
+    KNO2_4 = ttk.Entry(window4, font=("arial", 20))
+    KNO2_4.place(x=8, y=170)
+    KNO2_4.insert(0, "5") # Значение (кг/м3): Каменный уголь (Таблица 3).
+
+    # beta - коэффициент, учитывающий степень снижения выбросов окислов азота в результате применения технических решений.
+    label23 = ttk.Label(window4, text='beta - коэффициент, учитывающий степень снижения выбросов окислов азота в результате применения технических решений.')
+    label23.place(x=8, y=220)
+    beta_4 = ttk.Entry(window4, font=("arial", 20))
+    beta_4.place(x=8, y=240)
+    beta_4.insert(0, "0.6") # < 1.
+
+    # Нагрузка котла номинальная? Да - 1, Нет - 0.
+    label24 = ttk.Label(window4, text='Нагрузка котла номинальная? Да - 1, Нет - 0.')
+    label24.place(x=8, y=290)
+    nominal_4 = ttk.Entry(window4, font=("arial", 20))
+    nominal_4.place(x=8, y=320)
+    nominal_4.insert(0, "0")
+
+    # Qf - фактическая теплопроизводительность, кВт.
+    label25 = ttk.Label(window4, text='Qf - фактическая теплопроизводительность, кВт.')
+    label25.place(x=8, y=370)
+    Qf_4 = ttk.Entry(window4, font=("arial", 20))
+    Qf_4.place(x=8, y=400)
+    Qf_4.insert(0, "20")
+
+    # Qn - номинальная теплопроизводительность, кВт.
+    label26 = ttk.Label(window4, text='Qn - номинальная теплопроизводительность, кВт.')
+    label26.place(x=8, y=450)
+    Qn_4 = ttk.Entry(window4, font=("arial", 20))
+    Qn_4.place(x=8, y=480)
+    Qn_4.insert(0, "25")
+
+    # CNOx - Содержание окислов азота в дымовых газах (%)
+    # Значения CNOx (мг/г^3) для маломощных котлов приведены в таблице 3.
+    label27 = ttk.Label(window4, text='CNOx - Содержание окислов азота в дымовых газах (%). Если неизвестно, оставьте 0.')
+    label27.place(x=780, y=10)
+    CNOx_4 = ttk.Entry(window4, font=("arial", 20))
+    CNOx_4.place(x=780, y=30)
+    CNOx_4.insert(0, "0")
+
+    # q4 - потери тепла вследствие механической неполноты сгорания топлива, %.
+    label28 = ttk.Label(window4, text='q4 - потери тепла вследствие механической неполноты сгорания топлива, %')
+    label28.place(x=780, y=80)
+    q4_4 = ttk.Entry(window4, font=("arial", 20))
+    q4_4.place(x=780, y=100)
+    q4_4.insert(0, "5") # Значение (%): Каменный уголь (Таблица 2).
+
+    # alfayx
+    label29 = ttk.Label(window4, text='alfayx')
+    label29.place(x=780, y=150)
+    alfayx_4 = ttk.Entry(window4, font=("arial", 20))
+    alfayx_4.place(x=780, y=170)
+    alfayx_4.insert(0, "1")
+
+    # Vr
+    label30 = ttk.Label(window4, text='Vr')
+    label30.place(x=780, y=220)
+    Vr_4 = ttk.Entry(window4, font=("arial", 20))
+    Vr_4.place(x=780, y=240)
+    Vr_4.insert(0, "5.61") # Значение (м3/кг): Кизеловский бассейн (Приложение 1).
+
+    # Кнопка для расчёта.
+    btn4 = ttk.Button(window4, text="Расчёт", command=show_message4)
+    btn4.place(x=8, y=530)
+
+    # Выбор топлива.
+    def fuel1():
+        Qir_4.delete("0", END)
+        Qir_4.insert(0, "4680")
+    Fuel1_4 = tkinter.Button(window4, text="Кизеловский бассейн", width=45, command=fuel1)
+    Fuel1_4.place(x=350, y=290)
+
+    def fuel2():
+        Qir_4.delete("0", END)
+        Qir_4.insert(0, "3380")
+    Fuel2_4 = tkinter.Button(window4, text="Челябинский бассейн", width=45, command=fuel2)
+    Fuel2_4.place(x=350, y=310)
+
+    def fuel3():
+        Qir_4.delete("0", END)
+        Qir_4.insert(0, "2170")
+    Fuel3_4 = tkinter.Button(window4, text="Южно-Уральский бассейн", width=45, command=fuel3)
+    Fuel3_4.place(x=350, y=330)
+
+    def fuel4():
+        Qir_4.delete("0", END)
+        Qir_4.insert(0, "5030")
+    Fuel4_4 = tkinter.Button(window4, text="Карагандинский бассейн", width=45, command=fuel4)
+    Fuel4_4.place(x=350, y=350)
+
+    def fuel5():
+        Qir_4.delete("0", END)
+        Qir_4.insert(0, "4510")
+    Fuel5_4 = tkinter.Button(window4, text="Экибастузский бассейн", width=45, command=fuel5)
+    Fuel5_4.place(x=350, y=370)
+
+    def fuel6():
+        Qir_4.delete("0", END)
+        Qir_4.insert(0, "3140")
+    Fuel6_4 = tkinter.Button(window4, text="Тургайский бассейн", width=45, command=fuel6)
+    Fuel6_4.place(x=350, y=390)
+
+    def fuel7():
+        Qir_4.delete("0", END)
+        Qir_4.insert(0, "5460")
+    Fuel7_4 = tkinter.Button(window4, text="Кузнецкий бассейн", width=45, command=fuel7)
+    Fuel7_4.place(x=350, y=410)
+
+    def fuel8():
+        Qir_4.delete("0", END)
+        Qir_4.insert(0, "6220")
+    Fuel8_4 = tkinter.Button(window4, text="Горловский бассейн", width=45, command=fuel8)
+    Fuel8_4.place(x=350, y=430)
+
+    def fuel9():
+        Qir_4.delete("0", END)
+        Qir_4.insert(0, "5110")
+    Fuel9_4 = tkinter.Button(window4, text="Кузнецкий бассейн (открытая добыча)", width=45, command=fuel9)
+    Fuel9_4.place(x=350, y=450)
+
+    def fuel10():
+        Qir_4.delete("0", END)
+        Qir_4.insert(0, "3700")
+    Fuel10_4 = tkinter.Button(window4, text="Канско-Ачинский бассейн", width=45, command=fuel10)
+    Fuel10_4.place(x=350, y=470)
+
+    def fuel11():
+        Qir_4.delete("0", END)
+        Qir_4.insert(0, "4800")
+    Fuel11_4 = tkinter.Button(window4, text="Минусинский бассейн", width=45, command=fuel11)
+    Fuel11_4.place(x=350, y=490)
+
+    def fuel12():
+        Qir_4.delete("0", END)
+        Qir_4.insert(0, "4270")
+    Fuel12_4 = tkinter.Button(window4, text="Иркутский бассейн", width=45, command=fuel12)
+    Fuel12_4.place(x=350, y=510)
+
+    def fuel13():
+        Qir_4.delete("0", END)
+        Qir_4.insert(0, "4020")
+    Fuel13_4 = tkinter.Button(window4, text="Гусиноозерское месторождение", width=45, command=fuel13)
+    Fuel13_4.place(x=350, y=530)
+    def fuel14():
+        Qir_4.delete("0", END)
+        Qir_4.insert(0, "5790")
+    Fuel14_4 = tkinter.Button(window4, text="Месторождения Северо-Восточных районов", width=45, command=fuel14)
+    Fuel14_4.place(x=350, y=550)
+    def fuel15():
+        q4_4.delete("0", END)
+        q4_4.insert(0, "5")
+        KNO2_4.delete("0", END)
+        KNO2_4.insert(0, "5")
+        alfayx_4.delete("0", END)
+        alfayx_4.insert(0, "1")
+        CNOx_4.delete("0", END)
+        CNOx_4.insert(0, "205")
+    Fuel15_4 = tkinter.Button(window4, text="КС-2: Каменный уголь - начало выгорания", width=45, command=fuel15)
+    Fuel15_4.place(x=650, y=290)
+    def fuel16():
+        q4_4.delete("0", END)
+        q4_4.insert(0, "5")
+        KNO2_4.delete("0", END)
+        KNO2_4.insert(0, "25")
+        alfayx_4.delete("0", END)
+        alfayx_4.insert(0, "1")
+        CNOx_4.delete("0", END)
+        CNOx_4.insert(0, "180")
+    Fuel16_4 = tkinter.Button(window4, text="КС-2: Каменный уголь - основной период горения", width=45, command=fuel16)
+    Fuel16_4.place(x=650, y=310)
+    def fuel17():
+        q4_4.delete("0", END)
+        q4_4.insert(0, "13.5")
+        KNO2_4.delete("0", END)
+        KNO2_4.insert(0, "7")
+        alfayx_4.delete("0", END)
+        alfayx_4.insert(0, "1")
+        CNOx_4.delete("0", END)
+        CNOx_4.insert(0, "110")
+    Fuel17_4 = tkinter.Button(window4, text="КЧМ-3: Антрацит - розжиг дров", width=45, command=fuel17)
+    Fuel17_4.place(x=650, y=330)
+    def fuel18():
+        q4_4.delete("0", END)
+        q4_4.insert(0, "13.5")
+        KNO2_4.delete("0", END)
+        KNO2_4.insert(0, "35")
+        alfayx_4.delete("0", END)
+        alfayx_4.insert(0, "1")
+        CNOx_4.delete("0", END)
+        CNOx_4.insert(0, "75")
+    Fuel18_4 = tkinter.Button(window4, text="КЧМ-3: Антрацит - догорание дров", width=45, command=fuel18)
+    Fuel18_4.place(x=650, y=350)
+    def fuel19():
+        q4_4.delete("0", END)
+        q4_4.insert(0, "13.5")
+        KNO2_4.delete("0", END)
+        KNO2_4.insert(0, "10")
+        alfayx_4.delete("0", END)
+        alfayx_4.insert(0, "1")
+        CNOx_4.delete("0", END)
+        CNOx_4.insert(0, "120")
+    Fuel19_4 = tkinter.Button(window4, text="КЧМ-3: Антрацит - начало погрузки угля", width=45, command=fuel19)
+    Fuel19_4.place(x=650, y=370)
+    def fuel20():
+        q4_4.delete("0", END)
+        q4_4.insert(0, "13.5")
+        KNO2_4.delete("0", END)
+        KNO2_4.insert(0, "20")
+        alfayx_4.delete("0", END)
+        alfayx_4.insert(0, "1")
+        CNOx_4.delete("0", END)
+        CNOx_4.insert(0, "110")
+    Fuel20_4 = tkinter.Button(window4, text="КЧМ-3: Антрацит - конец погрузки", width=45, command=fuel20)
+    Fuel20_4.place(x=650, y=390)
+    def fuel21():
+        q4_4.delete("0", END)
+        q4_4.insert(0, "13.5")
+        KNO2_4.delete("0", END)
+        KNO2_4.insert(0, "30")
+        alfayx_4.delete("0", END)
+        alfayx_4.insert(0, "1")
+        CNOx_4.delete("0", END)
+        CNOx_4.insert(0, "100")
+    Fuel21_4 = tkinter.Button(window4, text="КЧМ-3: Антрацит - основной период горения", width=45, command=fuel21)
+    Fuel21_4.place(x=650, y=410)
+    def fuel22():
+        q4_4.delete("0", END)
+        q4_4.insert(0, "2")
+        KNO2_4.delete("0", END)
+        KNO2_4.insert(0, "9")
+        alfayx_4.delete("0", END)
+        alfayx_4.insert(0, "1")
+        CNOx_4.delete("0", END)
+        CNOx_4.insert(0, "100")
+    Fuel22_4 = tkinter.Button(window4, text="КС-2: Дрова - разгорание дров", width=45, command=fuel22)
+    Fuel22_4.place(x=650, y=430)
+    def fuel23():
+        q4_4.delete("0", END)
+        q4_4.insert(0, "2")
+        KNO2_4.delete("0", END)
+        KNO2_4.insert(0, "35")
+        alfayx_4.delete("0", END)
+        alfayx_4.insert(0, "1")
+        CNOx_4.delete("0", END)
+        CNOx_4.insert(0, "70")
+    Fuel23_4 = tkinter.Button(window4, text="КС-2: Дрова - догорание дров", width=45, command=fuel23)
+    Fuel23_4.place(x=650, y=450)
+    def fuel24():
+        q4_4.delete("0", END)
+        q4_4.insert(0, "0.5")
+        KNO2_4.delete("0", END)
+        KNO2_4.insert(0, "25")
+        alfayx_4.delete("0", END)
+        alfayx_4.insert(0, "1.2")
+        CNOx_4.delete("0", END)
+        CNOx_4.insert(0, "140")
+    Fuel24_4 = tkinter.Button(window4, text="КЧМ-3: Природный газ - alfa = 1.2", width=45, command=fuel24)
+    Fuel24_4.place(x=650, y=470)
+    def fuel25():
+        q4_4.delete("0", END)
+        q4_4.insert(0, "0.5")
+        KNO2_4.delete("0", END)
+        KNO2_4.insert(0, "35")
+        alfayx_4.delete("0", END)
+        alfayx_4.insert(0, "1.4")
+        CNOx_4.delete("0", END)
+        CNOx_4.insert(0, "150")
+    Fuel25_4 = tkinter.Button(window4, text="КЧМ-3: Природный газ - alfa = 1.4", width=45, command=fuel25)
+    Fuel25_4.place(x=650, y=490)
+    def fuel26():
+        q4_4.delete("0", END)
+        q4_4.insert(0, "0.5")
+        KNO2_4.delete("0", END)
+        KNO2_4.insert(0, "50")
+        alfayx_4.delete("0", END)
+        alfayx_4.insert(0, "1.8")
+        CNOx_4.delete("0", END)
+        CNOx_4.insert(0, "150")
+    Fuel26_4 = tkinter.Button(window4, text="КЧМ-3: Природный газ - alfa = 1.8", width=45, command=fuel26)
+    Fuel26_4.place(x=650, y=510)
+    def fuel27():
+        q4_4.delete("0", END)
+        q4_4.insert(0, "0.5")
+        KNO2_4.delete("0", END)
+        KNO2_4.insert(0, "60")
+        alfayx_4.delete("0", END)
+        alfayx_4.insert(0, "2.2")
+        CNOx_4.delete("0", END)
+        CNOx_4.insert(0, "160")
+    Fuel27_4 = tkinter.Button(window4, text="КЧМ-3: Природный газ - alfa = 2.2", width=45, command=fuel27)
+    Fuel27_4.place(x=650, y=530)
+    def fuel28():
+        q4_4.delete("0", END)
+        q4_4.insert(0, "0.5")
+        KNO2_4.delete("0", END)
+        KNO2_4.insert(0, "80")
+        alfayx_4.delete("0", END)
+        alfayx_4.insert(0, "2.8")
+        CNOx_4.delete("0", END)
+        CNOx_4.insert(0, "180")
+    Fuel28_4 = tkinter.Button(window4, text="КЧМ-3: Природный газ - alfa = 2.8", width=45, command=fuel28)
+    Fuel28_4.place(x=650, y=550)
+    def fuel29():
+        q4_4.delete("0", END)
+        q4_4.insert(0, "2")
+        KNO2_4.delete("0", END)
+        KNO2_4.insert(0, "25")
+        alfayx_4.delete("0", END)
+        alfayx_4.insert(0, "1.25")
+        CNOx_4.delete("0", END)
+        CNOx_4.insert(0, "250")
+    Fuel29_4 = tkinter.Button(window4, text="КС-3: ТПБ (печное бытовое) - alfa = 1.25", width=45, command=fuel29)
+    Fuel29_4.place(x=650, y=570)
+    def fuel30():
+        q4_4.delete("0", END)
+        q4_4.insert(0, "0")
+        KNO2_4.delete("0", END)
+        KNO2_4.insert(0, "80")
+        alfayx_4.delete("0", END)
+        alfayx_4.insert(0, "1.4")
+        CNOx_4.delete("0", END)
+        CNOx_4.insert(0, "140")
+    Fuel30_4 = tkinter.Button(window4, text="КС-3: Лёгкое жидкое топливо - alfa = 1.4", width=45, command=fuel30)
+    Fuel30_4.place(x=650, y=590)
+    def fuel31():
+        q4_4.delete("0", END)
+        q4_4.insert(0, "0.5")
+        KNO2_4.delete("0", END)
+        KNO2_4.insert(0, "80")
+        alfayx_4.delete("0", END)
+        alfayx_4.insert(0, "1.4")
+        Qir_4.delete("0", END)
+        Qir_4.insert(0, "4020")
+        B_4.delete("0", END)
+        B_4.insert(0, "100")
+        beta_4.delete("0", END)
+        beta_4.insert(0, "0.4")
+        CNOx_4.delete("0", END)
+        CNOx_4.insert(0, "140")
+    Fuel31_4 = ttk.Button(window4, text="Тест 1", command=fuel31)
+    Fuel31_4.place(x=98, y=530)
+    def fuel32():
+        q4_4.delete("0", END)
+        q4_4.insert(0, "0.5")
+        KNO2_4.delete("0", END)
+        KNO2_4.insert(0, "50")
+        alfayx_4.delete("0", END)
+        alfayx_4.insert(0, "1.8")
+        Qir_4.delete("0", END)
+        Qir_4.insert(0, "3380")
+        B_4.delete("0", END)
+        B_4.insert(0, "300")
+        beta_4.delete("0", END)
+        beta_4.insert(0, "0.3")
+        CNOx_4.delete("0", END)
+        CNOx_4.insert(0, "150")
+    Fuel32_4 = ttk.Button(window4, text="Тест 2", command=fuel32)
+    Fuel32_4.place(x=188, y=530)
