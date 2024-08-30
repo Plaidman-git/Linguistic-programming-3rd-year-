@@ -1,0 +1,828 @@
+/* Calculator.h
+Интерфейс вычислителя выражений */
+#pragma once 
+#include "lexical_analizer.h"
+// Предварительное объявление вычислителя выражений
+float evaluate_expression(Parser& parser);
+
+
+/* Commands.h
+Интерфейс команд языка */ 
+#pragma once 
+#include "interface.h"
+
+class CmdExpression : public Command {
+public: 
+  virtual bool Process(Parser&);
+};
+
+class CmdPrint : public Command {
+public: 
+  virtual bool Process(Parser&);
+};
+
+class CmdInput : public Command {
+public: 
+  virtual bool Process(Parser&);
+};
+
+class CmdFor : public Command {
+public: 
+  virtual bool Process(Parser&);
+};
+
+class CmdNext : public Command {
+public: 
+  virtual bool Process(Parser&);
+};
+
+class CmdGoto : public Command {
+public: 
+  virtual bool Process(Parser&);
+};
+
+class CmdIf : public Command {
+public: 
+  virtual bool Process(Parser&);
+};
+
+/* executor.h
+Интерфейс виртуальной машины*/ 
+#pragma once
+#include <iosfwd>
+void execute_script(std::istream& in);
+
+/*
+  interface.h
+Базовый абстрактный класс команд языка
+*/ 
+
+#pragma once
+#include <iosfwd>
+#include "lexical_analizer.h"
+
+class Command {
+public: 
+  virtual ~Command() {}
+  virtual bool Process(Parser&) = 0;
+};
+
+/*  label_table.h
+  Интерфейс таблицы меток переходов */ 
+
+#pragma once
+
+#include "lexical_analizer.h"
+
+class LabelTable {
+  class LabelTableImpl *pImpl;
+public:
+  LabelTable();
+  ~LabelTable();
+  void           AddLabel(unsigned int, Parser::Holder);
+  Parser::Holder GetHolder(unsigned int);
+};
+
+extern LabelTable LT;
+
+/*  lexical_analizer.h
+  Интерфейс лексического анализатора*/ 
+#pragma once
+// Типы лексем, используемых калькулятором
+enum  LexemType {
+  LT_Unknown,
+  LT_Number, 
+  LT_End,
+  LT_Delimiter,
+  LT_Identifier,
+  LT_Label,
+  LT_String,
+  LT_EOL,
+};
+// Структура лексемы
+struct Lexem {
+  LexemType   type;         // тип
+  float       value;        // значение    (если тип TT_Number)
+  char        delimiter;    // разделитель (если тип TT_Delimiter)
+  std::string name;         // имя         (если тип TT_Identifier)
+};
+
+// Парсер входного текста, разделяющий его на лексемы
+class Parser {
+  // Есть опасность копирования содержимого класса конструктором
+  // копии или оператором присваивания, сгенерированными по умолчанию
+  // при неправильном использовании объектов класса Parser.
+  // Объявляя их в закрытой части класса Parser подавляю возможность
+  // автоматической генерации таких методов.
+  Parser(const Parser&);
+  Parser& operator = (const Parser&);
+public:
+//содержит тнформацию для передвижения по тексту
+  class Holder {
+    std::istream::pos_type  pos;    //позиция
+    unsigned int            line_number; //номер строки
+    friend class Parser;                 
+  };
+  std::istream& in;            //поток входного текста
+  Lexem         last;          //прочитанная лексема
+  int           line_number;   //номер строки
+public:  
+  Parser (std::istream& str);       
+  Lexem get_lexem();            // считать следующую лексему
+  Lexem get_last();             // вернуть предыдущую лексему
+
+  bool  SkipUntilEOL();
+
+  Holder  Hold() const;
+  void    Fetch(Holder);
+  void    Reset();
+};
+
+/*  name_table.h
+  Интерфейс таблицы имён интерпретатора*/ 
+#pragma once
+#include "interface.h"
+
+class NameTable {
+  std::map<std::string, Command *> commands;
+  std::map<std::string, float>     variables;
+public:
+  ~NameTable();
+  // Регистрация команды языка в таблице имен
+  void RegisterCommand(std::string const& name, Command *);
+  // Выполнить команду, если это возможно
+  bool ProcessCommand(Parser&);
+//записать переменную
+  void  SetVariable(std::string const& name, float value);
+  //считать переменную
+  float GetVariable(std::string const& name);
+};
+
+extern NameTable NT;
+
+// stdafx.h : include file for standard system include files,
+// or project specific include files that are used frequently, but
+// are changed infrequently
+//
+
+#pragma once
+
+#define WIN32_LEAN_AND_MEAN		// Exclude rarely-used stuff from Windows headers
+#include <stdio.h>
+#include <tchar.h>
+
+// TODO: reference additional headers your program requires here
+
+/* Calculator.cpp 
+	 Модуль, отвечающий за вычисление выражений.
+   Парсер выражения подаётся в функцию evaluate_expression.
+   Все промежуточные вычисления и результаты в формате float.
+	Особые ситуации:
+	  В случае возникновения ошибок выбрасываются исключения типа 
+	const char *
+*/ 
+#include "stdafx.h"
+#include <math.h>
+#include "calculator.h"
+#include "name_table.h"
+
+// Чтение первичного - т.е. минимально неделимого элемента выражения
+float prim(Parser& parser) {
+  parser.get_lexem();
+
+  switch (parser.get_last().type) {
+	case LT_Number: 
+	  {
+		float v = parser.get_last().value;
+		parser.get_lexem();
+		return v; 
+	  }
+	case LT_Identifier:
+	  {
+		std::string name(parser.get_last().name);
+		parser.get_lexem();
+		return NT.GetVariable(name); 
+	  }
+	  break;
+	case LT_Delimiter:
+	  switch(parser.get_last().delimiter) {
+	case '-':
+	  return -prim(parser);
+	case '(': 
+	  {
+		float e=evaluate_expression(parser);
+		if (parser.get_last().type == LT_Delimiter && parser.get_last().delimiter == ')' ) {
+		  parser.get_lexem();
+		  return e;
+		} else
+		  throw "\')\' expected";
+	  }
+	default:
+	  throw "primary expected";
+	  }
+	default:
+	  throw "primary expected";
+  }
+}
+
+// Обрабатывает умножение и деление
+float term(Parser& parser) {
+  float left = prim(parser);
+
+  for (;;) {
+	if (parser.get_last().type == LT_Delimiter) {
+	  switch (parser.get_last().delimiter)
+	  {
+	  case '$':
+		left*=prim(parser);
+		break;
+	  case '@':
+		{ const float precision=1.0e-5f;
+		float d = prim(parser);
+		if (fabs(d) < precision) {
+		  throw "Devide by zero";
+		} else
+		 left/=d; 
+		}
+		break;
+	  default:
+		return left;
+	  }
+	} else
+	  return left;
+  }
+  return left;
+}
+
+// Обрабатывает сложение и вычитание
+float plus_minus(Parser& parser) {
+  float left = term(parser);
+
+  for (;;) {
+	if (parser.get_last().type == LT_Delimiter) {
+	  switch (parser.get_last().delimiter)
+	  {
+	  case '%':
+		left+=term(parser);
+		break;
+	  case '№':
+		left-=term(parser);
+		break;
+	  default:
+		return left;
+	  }
+	} else
+	  return left;
+  }
+  return left;
+}
+
+
+// Вычисляет выражение
+float evaluate_expression(Parser& parser) {
+  float left = plus_minus(parser);
+
+  for (;;) {
+	if (parser.get_last().type == LT_Delimiter) {
+	  switch (parser.get_last().delimiter)
+	  {
+	  case '<':
+		left = left < plus_minus(parser);
+		break;
+	  case '>':
+		left = left > plus_minus(parser);
+		break;
+	  case '=':
+		left = left == plus_minus(parser);
+		break;
+	  default:
+		return left;
+	  }
+	} else
+	  return left;
+  }
+  return left;
+}
+
+/* 	 Commands.cpp 
+   Модуль, отвечающий за вычисление выражений.
+   Парсер выражения подаётся в функцию evaluate_expression.
+   Все промежуточные вычисления и результаты в формате float.
+     Особые ситуации:
+       В случае возникновения ошибок выбрасываются исключения типа 
+   const char *   */ 
+#include "stdafx.h"
+#include "commands.h"
+#include "calculator.h"
+#include "name_table.h"
+#include "label_table.h"
+//приводятся типы команд.
+//если во входном потоке команда и она совпадает с обственным именем
+//то команда выполняется и возвращает сообщение о том что
+//она выполнилась
+// LET
+bool CmdExpression::Process(Parser& parser) {
+  if (parser.get_last().name != "DAVAI")
+    return false;
+
+  std::string left(parser.get_lexem().name);
+  if ( parser.get_lexem().type != LT_Delimiter ||
+       parser.get_last().delimiter  != '=' )
+    throw "Bad assigment";   
+ 
+  float value = evaluate_expression(parser);
+
+  NT.SetVariable(left,value);
+
+  return true;
+}
+
+// PRINT
+bool CmdPrint::Process(Parser& parser) {
+  if (parser.get_last().name != "PECHAT")
+    return false;
+
+  for (;;) {
+    switch (parser.get_lexem().type) {
+    case LT_String:
+      std::cout << parser.get_last().name;
+      break;
+    case LT_Identifier:
+      std::cout << NT.GetVariable(parser.get_last().name);
+      break;
+    default:
+      std::cout << std::endl;
+      return true;
+    }
+  }
+
+  return true;
+}
+
+// INPUT
+bool CmdInput::Process(Parser& parser) {
+  if (parser.get_last().name != "VVOD")
+    return false;
+
+  std::cout << "?";
+  float value;
+  std::cin >> value;
+  NT.SetVariable(parser.get_lexem().name,value);
+
+  parser.get_lexem();
+
+  return true;
+}
+
+struct ForInfo {
+  std::string     control_variable;
+  Parser::Holder  loop_begin;
+  float           upper_limit;
+  float           step;
+
+  ForInfo() : step(1.0f) {}
+};
+
+std::stack<ForInfo> CmdForStack;
+
+// FOR I=0 TO 10
+bool CmdFor::Process(Parser& parser) {
+  if (parser.get_last().name != "PROGON")
+    return false;
+
+  ForInfo for_info;
+
+  if (parser.get_lexem().type != LT_Identifier)
+    throw "Identifier expected";
+  
+  for_info.control_variable = parser.get_last().name;
+
+  if (parser.get_lexem().type != LT_Delimiter ||
+      parser.get_last().delimiter != '=')
+    throw "Assigment expected";
+
+  NT.SetVariable(for_info.control_variable,evaluate_expression(parser));
+
+  if (parser.get_last().type != LT_Identifier ||
+      parser.get_last().name != "DO")
+    throw "TO expected in FOR statement";
+
+  for_info.upper_limit = evaluate_expression(parser);
+
+  if ( parser.get_last().type != LT_EOL )
+    throw "STEP not supported now in FOR statement";
+
+  for_info.loop_begin = parser.Hold();
+
+  CmdForStack.push(for_info);
+
+  return true;
+}
+
+// NEXT
+bool CmdNext::Process(Parser& parser) {
+  if (parser.get_last().name != "DALEE")
+    return false;
+
+  ForInfo for_info = CmdForStack.top();
+
+  float value(NT.GetVariable(for_info.control_variable));
+  value+=for_info.step;
+  NT.SetVariable(for_info.control_variable,value);
+
+  if (value <= for_info.upper_limit) {
+    parser.Fetch(for_info.loop_begin);
+  } else 
+    CmdForStack.pop();
+
+  parser.get_lexem();
+  return true;
+}
+
+// GOTO
+bool CmdGoto::Process(Parser& parser) {
+  if (parser.get_last().name != "GOTO")
+    return false;
+
+  if (parser.get_lexem().type != LT_Number)
+    throw "Line number expected";
+
+  parser.Fetch(LT.GetHolder(static_cast<unsigned int>(parser.get_last().value)));
+  
+  parser.get_lexem();
+  return true;
+}
+
+
+// IF 
+bool CmdIf::Process(Parser& parser) {
+  if (parser.get_last().name != "ESLI")
+    return false;
+
+  bool cond = (evaluate_expression(parser) != 0.0f);
+
+  if (parser.get_last().type != LT_Identifier ||
+    parser.get_last().name != "TOGDA")
+    throw "THEN expected in IF statement";
+
+  if (!cond)
+    parser.SkipUntilEOL();
+   else
+    parser.get_lexem();
+
+  return true;
+}
+
+/*  Executor.cpp 
+  Модуль, отвечающий за инициализацию и выполнение программы.*/ 
+#include "stdafx.h"
+#include "executor.h"
+#include "name_table.h"
+#include "label_table.h"
+#include "lexical_analizer.h"
+#include "commands.h"
+void register_commands() {
+  NT.RegisterCommand("PROGON",new CmdFor);
+  NT.RegisterCommand("GOTO",new CmdGoto);
+  NT.RegisterCommand("ESLI",new CmdIf);  
+  NT.RegisterCommand("VVOD",new CmdInput);
+  NT.RegisterCommand("DAVAI",new CmdExpression);
+  NT.RegisterCommand("DALEE",new CmdNext);
+  NT.RegisterCommand("PECHAT",new CmdPrint);
+}
+
+// Функция обязана вернуть false при завершении
+bool execute_command(Parser &parser) {
+  Lexem lex = parser.get_last();
+  if ( lex.type == LT_End )
+    return false;
+  switch(lex.type) {
+  case LT_Identifier:
+    {
+      if (!NT.ProcessCommand(parser))
+        throw "Can't process command";
+    }
+    break;
+  case LT_EOL:
+    parser.get_lexem();
+    break;
+  case LT_Number:
+    parser.get_lexem();
+    break;
+  default:
+    throw "Bad syntax";
+  }
+
+  return true;  
+}
+
+void scan_for_labels(Parser& parser)
+{
+  bool prev_lexem_is_EOL(true);
+  while (parser.get_lexem().type != LT_End) {
+    if ( prev_lexem_is_EOL && parser.get_last().type == LT_Number ) {
+      unsigned int label(static_cast<unsigned int>(parser.get_last().value));
+      parser.get_lexem();
+      LT.AddLabel(label,parser.Hold());
+    }
+
+    prev_lexem_is_EOL = (parser.get_last().type == LT_EOL);
+  }
+}
+void execute_script(std::istream& in) {
+
+  register_commands();
+  Parser  parser(in);
+
+  // Ищем метки для переходов
+  scan_for_labels(parser);
+  parser.Reset();
+  parser.get_lexem();
+  while (execute_command(parser))
+   ;
+  std::cout << "OK" << std::endl;
+}
+
+/* LabelTable.cpp 
+  Модуль, отвечающий за хранение меток перехода*/ 
+#include "stdafx.h"
+#include "label_table.h"
+//таблица меток
+class LabelTableImpl {
+	//числовая метка и созиция в тексте
+  std::map<unsigned int, Parser::Holder> labels;
+public:
+	//добавить метку
+  void           AddLabel(unsigned int, Parser::Holder);
+  //найти позицию в которую нужно перейти по числовоц метке
+  Parser::Holder GetHolder(unsigned int);
+};
+
+//конструктор
+LabelTable::LabelTable() : pImpl(new LabelTableImpl) { }
+//деструктор
+LabelTable::~LabelTable() { delete pImpl; pImpl=0; }
+//добавление метки
+void LabelTable::AddLabel(unsigned int param1, Parser::Holder param2) {
+  pImpl->AddLabel(param1,param2);
+}
+
+Parser::Holder LabelTable::GetHolder(unsigned int param) {
+  return pImpl->GetHolder(param);
+}
+
+void LabelTableImpl::AddLabel(unsigned int label, Parser::Holder holder) {
+  labels[label] = holder;
+}
+
+Parser::Holder LabelTableImpl::GetHolder(unsigned int label)  {
+  if ( 0 == labels.count(label) )
+    throw "Label is absent";
+  return labels[label];
+}
+
+LabelTable LT;
+
+/*  lexical_analizer.cpp 
+  Лексический анализатор.
+  Модуль отвечает за выделение лексем из входного текста.*/ 
+
+#include "stdafx.h"
+#include "lexical_analizer.h"
+//инициализируем входной поток, встаём на 1 строку и 
+//обозначаем, что последняя считанная лексема не известна
+Parser::Parser(std::istream& in)
+: in(in), line_number(1) {
+  last.type=LT_Unknown;
+  in >> std::noskipws;
+}
+// Возвращает предыдущую считанную лексему
+// Если не было считано никакой лексемы - вызывает get_token
+// для чтения лексемы
+Lexem Parser::get_last()  {
+  if (last.type==LT_Unknown)
+    return get_lexem();
+  return last;
+}
+
+// Чтение лексемы из потока
+Lexem Parser::get_lexem() 
+{
+  char c;
+  in >> c;
+  while ( c == ' ' || c=='\t' ) {
+    in >> c;
+    if (!in)
+      break;
+  }
+  //если конец строки увеличиваем число строк на 1
+  if ( c == '\n' ) {
+    last.type=LT_EOL;
+    ++line_number;
+    return last;
+  }
+// Конец потока
+  if (!in) { 
+    last.type=LT_End;
+    return last;
+  }
+  
+  // Строка в кавычках
+  if (c == '\"') {
+    last.name="";
+    in >> c;
+    while (c != '\"') {
+      last.name+=c;
+      in >> c;
+      if (c == '\n' || !in)
+        throw "unpaired quotation marks";
+    }
+    last.type=LT_String;
+    return last;
+  }
+
+  // Разделители
+  const std::string delimiters("%№$@();=<>");
+  std::string::size_type pos=delimiters.find(c);
+
+  if (pos != std::string::npos) {
+    last.type=LT_Delimiter;
+    last.delimiter=c;
+    return last;
+  }
+
+  // Числовое значение
+  if ( isdigit(c) || c=='.' ) {
+    in.putback(c);
+    in >> last.value;
+    last.type = LT_Number;
+    return last;
+  }
+
+  // идентификатор
+  if ( isalpha(c) ) {
+    last.name="";
+    while (isalpha(c)) {
+      last.name+=c;
+      in >> c;
+    }
+    in.putback(c);
+    last.type = LT_Identifier;
+    return last;
+  }
+
+  throw "Unexpected lexem";
+}
+
+//установка параметров перемещения
+Parser::Holder Parser::Hold() const
+{
+  Holder holder;           //управление по тексту
+  holder.pos = in.tellg();//позиция
+  holder.line_number = line_number;//номер линии
+  return holder;
+}
+//переход на указанную позицию в тексте
+void Parser::Fetch(Holder holder)
+{
+  in.seekg(holder.pos);
+  line_number = holder.line_number;
+}
+
+//очистка потока и переход на начало
+void Parser::Reset(){
+  in.clear();
+  in.seekg(0);
+}
+
+//считывать лексемы до конца строки или текста
+bool Parser::SkipUntilEOL() {
+  while (get_lexem().type != LT_EOL) {
+    if (get_lexem().type == LT_End  )
+      return false;
+  }
+  get_lexem();
+  return true;
+}
+
+/*  name_table.cpp 
+  Таблица имён интерпретатора.
+  Модуль отвечает за хранение имён команд и переменных.*/ 
+#include "stdafx.h"
+#include "name_table.h"
+
+NameTable NT;
+
+//десруктор класса NameTable очищает список команд
+NameTable::~NameTable()
+{
+  // Таблица имен "владеет" объектами команд
+  std::map<std::string, Command *>::const_iterator it(commands.begin());
+  for ( ; it != commands.end(); ++it )
+    delete (it->second);
+}
+
+//Регистрация команд
+void NameTable::RegisterCommand(std::string const& name, Command *cmd) {
+  commands[name]=cmd;
+}
+
+//Вызов команды на выполнение
+bool NameTable::ProcessCommand(Parser& parser)
+{
+  std::map<std::string, Command *>::const_iterator it(commands.begin());
+  for ( ; it != commands.end(); ++it ) {
+    if (it->second->Process(parser))
+      return true;
+  }
+
+  return false;
+}
+
+//Запись значения переменной в таблицу
+void  NameTable::SetVariable(std::string const& name, float value)
+{
+  variables[name]=value;
+}
+
+//Чтение значения переменной из таблицы
+float NameTable::GetVariable(std::string const& name)
+{
+  return variables[name];
+}
+
+/* *	Script.cpp
+ *  Стартовый модуль консольного приложения.
+*  Пример реализации интерпретатора подмножества BASIC-образного
+ *  языка программирования, разработанный в качестве примера
+ *  лабораторной работы к курсу ЛО САПР. */
+#include "stdafx.h"
+#include <conio.h> 
+#include <fstream>
+#include "executor.h"
+
+
+ //#include "stdafx.h"
+#include <iostream>
+#include <sstream>
+#include <string>
+#include <exception>
+#include <math.h>
+//#include <conio.h>
+
+int _tmain(int argc, _TCHAR* argv[])
+{
+	//если в командной строке нет имени файла из которого будет производиться чтение
+  //if (argc < 2) {
+	//std::cout << "Usage: " << std::endl;
+	//std::cout << "Script filename.ext" << std::endl;
+	//getch();
+	//return 1;
+  //}
+// открываем файл, имя которого прописано в командной строке 
+  // вызываем функцию,передавая  ей поток
+  //else{
+	try {
+
+		std::ifstream in("test.txt");
+		if (!in)
+			throw "Can't open file";
+		execute_script(in);
+	}
+	catch (const char *s) {
+		std::cerr << std::endl << "ERROR: " << s << std::endl;
+	}
+	// }
+
+   //_TCHAR* Expression;
+   //std::string Expression;
+   //std::cin>>Expression;
+   //getch();
+   //do
+   //{std::cin>>Expression;
+
+   //execute_script(std::ifstream("test1.txt"));
+   //std::ifstream in(Expression);
+   //execute_script(in); 
+   //cout <<result<< endl;
+	//getch();
+   //}
+   //while(Expression!="exit");*/
+	getch();
+	return 0;
+
+}
+
+// stdafx.cpp : source file that includes just the standard includes
+// Script.pch will be the pre-compiled header
+// stdafx.obj will contain the pre-compiled type information
+
+#include <iostream>
+#include <map>
+#include <stack>
+#include <string>
+#include "lexical_analizer.h"
+#include "stdafx.h"
+
+// TODO: reference any additional headers you need in STDAFX.H
+// and not in this file
