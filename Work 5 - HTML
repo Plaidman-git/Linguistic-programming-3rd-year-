@@ -1,0 +1,176 @@
+<html>
+<!-- Web-страница о типах аппаратов -->
+<head>
+ <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+ <meta http-equiv="Content-Language" content="ru">
+ <title>Типы отстойников</title> <!-- heat_types.html -->
+</head>
+<body>
+<h3>Типы аппаратов для отстаивания</h3>
+<p>В зависимости от функциональных значений <u>отстойники</u> бывают:</p>
+ <ol>
+<li>Регулирующие; </li>
+<li>запасные</li>
+<li>запасно-регулирующие (т. е. объединяющие в одном сооружении функции аккумулирования и хранения воды).</li>
+</ol>
+<p>Обычно <u> отстойники</u> используются как в промышленных масштабах, так и в индивидуальных хозяйствах. На стадии первичной очистки, когда в основном используются отстойники, из воды под действием гравитационных сил извлекаются механические примеси, взвешенные вещества, начинаются процессы биологической очистки; при использовании отстойника как биокоагулятора происходит осаждение мелкодисперсных и коллоидных примесей, а также на частицах ила происходят сорбционные процессы. В зависимости от источника энергии, используемой для диспергирования одной фазы в другой и перемешивания фаз,
+ <u>экстракторы</u> Двухъярусный отстойник (Эмшерский колодец) — отстойник, в котором сточные воды отстаиваются (осветляются) в верхнем ярусе сооружения, а в нижнем ярусе происходит сбраживание выпавшего осадка в анаэробных условиях</p>
+<p>В <u>отстойниках</u> после каждого процесса перемешивания следует разделение <i>(сепарация)</i> фаз. 
+В зависимости от рода сил, под действием которых осуществляется сепарация, различают экстракторы с разделением фаз в поле сил тяжести 
+— под действием разности удельных весов фаз <i>(гравитационные экстракторы)</i> и экстракторы с разделением фаз в поле центробежных сил 
+<i>(гибридные отстойники)</i>.</p>
+<p> <a href="D:\407\Knyazev\4 5 6\laba 6\oglav.html">Оглавление</a>
+</p>
+</body>
+</html>
+
+<html>
+<!-- Web-страница о технических характеристиках секционных теплообменников -->
+<head>
+ <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+ <meta http-equiv="Content-Language" content="ru">
+ <title>Технические характеристики (тип 1)</title> <!-- heat_section.html -->
+</head>
+<body>
+<h3>Технические характеристики горизонтальных отстойников</h3>
+<table border=1 width=100% id=table1 frame=box cellSpacing=0 
+ borderstyle=Solid bordercolor=#сссссс>
+<thead align = center><tr>
+ <td width=8%>Модель</td>
+ <td width=9%>Стадии</td>
+ <td width=9%>Смеситель, л</td>
+ <td width=9%>Oтстойник, л</td>
+ <td width=9%>Отстойник, см2</td>
+ <td width=9%>Переток, л/ч</td>
+ <td width=9%>Цена</td>
+</tr></thead>
+<tbody align = center> 
+ <tr>
+ <th>SX 1-1*</th>
+ <td>4</td> <td>0,035</td> <td>0,143</td> <td>49</td> <td>2-4</td> <td>89 419</td>
+ </tr>
+ <tr>
+ <th>SX 1-2*</th><td>4</td> <td>0,050</td> <td>0,200</td> <td>49</td> <td>2-5</td> <td>100 439</td> 
+ </tr>
+  <tr>
+ <td>SX 1-3*</td> <td>4</td> <td>0,035</td> <td>0,200</td> <td>71</td> <td>2-5</td> <td>110 769</td> 
+ </tr>
+ <tr>
+ <th>SX 2-0*</th> <td>4</td> <td>0,2</td> <td>1,3</td> <td>215</td> <td>10-20</td> <td>139 679</td> 
+ </tr>
+ <tr>
+ <th>SX 3-0*</th> <td>1</td> <td>0,62</td> <td>3</td> <td>270</td> <td>15-30</td> <td>174 349</td> 
+ </tr>
+ <tr>
+ <th>SX 3-1*</th> <td>1</td> <td>0,86</td> <td>5</td> <td>450</td> <td>20-40</td> <td>204 109</td> 
+ </tr>
+  <tr>
+ <th>SX 4-0*</th> <td>1</td> <td>2,3</td> <td>11</td> <td>1000</td> <td>150-200</td> <td>250 659</td> 
+ </tr>
+ <tr>
+ <th>SX 5-0*</th> <td>1</td> <td>5,2</td> <td>21</td> <td>1300</td> <td>200-300</td> <td>300 809</td> 
+ </tr>
+</tbody></table>
+<p> Вернуться на предыдущую страницу:
+<a href="D:\407\Knyazev\4 5 6\laba 5\main.html">Типы отстойников</a>
+</p>
+</body>
+</html>
+
+<html>
+<!-- Web-страница о технических характеристиках кожухотрубчатых теплообменников -->
+<head>
+ <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+ <meta http-equiv="Content-Language" content="ru">
+ <title>Технические характеристики (тип 2)</title> <!-- heat_shell_tube.html -->
+</head>
+<body>
+<h3>Технические характеристики вертикальных отстойников</h3>
+<table border=1 width=100% id=table1 frame=box cellSpacing=0 
+ borderstyle=Solid bordercolor=#сссссс>
+<thead align = center><tr>
+ <td width=7%>Модель</td>
+ <td width=7%>Количевство проб</td>
+ <td width=7%>Объем колбы, л</td>
+ <td width=13%>Максимальная потребляемая мощность, Вт</td>
+ <td width=12%>Максимальная температура нагрева, С </td>
+ <td width=14%>Габаритные размеры со штативом без стекла, Ш х Г х В</td>
+ <td width=7%>Масса, кг</td>
+ <td width=7%>Цена</td>
+</tr></thead>
+<tbody align = center> 
+ <tr>
+ <th>FAT 1</th> <td>1</td> <td>100</td> <td>500</td> <td>350</td> <td>520 x 165 x 600</td> <td>7</td> <td>82 450</td>
+ </tr>
+ <tr>
+ <th>FAT 2</th> <td>1</td> <td>250</td> <td>500</td> <td>350</td> <td>537 x 165 x 600</td> <td>8</td> <td>99 419</td>
+ </tr>
+ <tr>
+ <th>FAT 3</th> <td>1</td> <td>500</td> <td>550</td> <td>350</td> <td>542 x 165 x 600</td> <td>9</td> <td>100 679</td>
+ </tr>
+ <tr>
+ <th>FAT 4</th> <td>4</td> <td>250</td> <td>2000</td> <td>350</td> <td>556 х 340 х 600</td> <td>12</td> <td>115 600</td>
+ </tr>
+ <tr>
+ <th>FAT 5</th> <td>4</td> <td>500</td> <td>2500</td> <td>350</td> <td>613 х 340 х 600</td> <td>13</td> <td>130 439</td>
+ </tr>
+ <tr>
+ <th>FAT 6</th> <td>6</td> <td>500</td> <td>3000</td> <td>350</td> <td>816 х 340 х 600</td> <td>15</td> <td>179 489</td>
+ </tr>
+</tbody>
+</table>
+<p> Вернуться на предыдущую страницу:
+<a href="D:\407\Knyazev\4 5 6\laba 5\main.html">Типы отстойников</a>
+</p>
+</body>
+</html>
+
+<html>
+<!-- Web-страница о технических характеристиках пластинчатых теплообменников -->
+<head>
+ <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+ <meta http-equiv="Content-Language" content="ru">
+ <title>Технические характеристики (тип 3)</title> <!-- heat_plate.html -->
+</head>
+<body>
+<h3>Технические характеристиким радиальных отстойников</h3>
+<table border=1 width=100% id=table1 frame=box cellSpacing=0 borderstyle=Solid 
+ bordercolor=#сссссс>
+<thead align = center><tr>
+ <td width=7%>Модель</td>
+ <td width=9%>Диаметр, мм</td>
+<td width=9%>Объем, л</td>
+ <td width=12%>Высота, мм</td>
+ <td width=12%>Скорость, об/мин</td>
+ <td width=12%>Поток, л/ч </td>
+ <td width=13%>Цена</td>
+</tr></thead>
+<tbody align = center> 
+ <tr>
+ <th>ВХР 012</th> <td>12</td> <td>2,2</td> <td>285</td> <td>10000</td> <td>2</td> <td>216 949</td>
+ </tr>
+ <tr>
+ <th>ВХР 025</th> <td>25</td> <td>1,9</td> <td>482</td> <td>8000</td> <td>10</td> <td>182 139</td>
+ </tr>
+ <tr>
+ <th>ВХР 040</th> <td>40</td> <td>0,11</td> <td>490</td> <td>3000</td> <td>50</td> <td>157 949</td>
+ </tr>
+ <tr>
+ <th>ВХР 040P</th> <td>40</td> <td>0,11</td> <td>575</td> <td>3000</td> <td>50</td> <td>143 729 </td>
+ </tr>
+ <tr>
+ <th>ВХР 080</th> <td>80</td> <td>0,30</td> <td>570</td> <td>3000</td> <td>120</td> <td>112 219</td>
+ </tr>
+ <tr>
+ <th>ВХР 130P</th> <td>130</td> <td>1,3</td> <td>900</td> <td>1540</td> <td>600</td> <td>86 879</td>
+ </tr>
+ <tr>
+ <th>ВХР 130PL</th> <td>130</td> <td>1,9</td> <td>970</td> <td>1450</td> <td>850</td> <td>73 459</td>
+ </tr>
+</tbody>
+</table>
+<p> Вернуться на предыдущую страницу:
+<a href="D:\407\Knyazev\4 5 6\laba 5\main.html">Типы отстойников</a>
+</p>
+</body>
+</html>
