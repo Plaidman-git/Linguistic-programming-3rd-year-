@@ -1,0 +1,396 @@
+/********************************************************************
+Shell.cpp
+*********************************************************************/
+
+
+#include "stdafx.h"
+#include <iostream>
+#include <sstream>
+#include <string>
+#include <math.h>
+#include "Calculator.h"
+
+// Описание теста
+struct Test {
+	const char *expression; // вычисляемое выражение
+	float       result;     // ожидаемый результат
+};
+
+// Тесты
+Test tests[] = { {"50+60+40-30",120},
+				{"abs(log(0.001))",3},
+				{"-4^3",-64},
+				{"sqrt(64*64)",64},
+				{"(15^2-15)/15", 14},
+				{"sin(4)^2+cos(4)^2",1},
+				{"abs(sin(30)+cos(30))",0.83378},
+};
+
+int _tmain(int argc, _TCHAR* argv[])
+{
+	if (argc < 2) {
+		// Self-testing
+		std::cout << "Calculator" << std::endl
+			//<< "Usage: [expression]" << std::endl 
+			<< "Example: 42.3+15*(1+2^3)" << std::endl
+			//<< "To apply for information: help" << std::endl
+			<< "To finish program: exit " << std::endl;
+		std::cout << std::endl << "Self-testing" << std::endl;
+		bool self_testing_status(true);
+		for (int i = 0; i < sizeof(tests) / sizeof(tests[0]); ++i) {
+			try {
+				std::cout << tests[i].expression << "=" << tests[i].result;
+				float result(evaluate_expression(std::istringstream(tests[i].expression)));
+				const float precision = 0.00001f;  // Точность проверки результата
+				if (fabs(result - tests[i].result) < precision) {
+					std::cout << "=> OK" << std::endl;
+				}
+				else {
+					std::cout << "=> NOT PASSED (result is " << result << ")" << std::endl;
+					self_testing_status = false;
+				}
+			}
+			catch (const char *s) {
+				self_testing_status = false;
+				std::cerr << std::endl << "ERROR: " << s << std::endl;
+			}
+		}
+		if (self_testing_status) {
+			std::cout << "Self-testing passed" << std::endl;
+		}
+		else {
+			std::cerr << "Self-testing NOT PASSED" << std::endl;
+			std::cin.get();
+			std::cin.ignore();
+			// return 1;
+		}
+	}
+
+	// Непосредственно вычисление значения, вводимого в командной строке
+	for (;;)
+	{
+		try {
+			std::string Expression;
+			std::cin >> Expression;
+			if (Expression == "exit")
+			{
+				return 1;
+			}
+			if (Expression != "help")
+			{
+				std::cout << "Result is: " << evaluate_expression(std::istringstream(Expression)) << std::endl;
+			}
+			else
+			{
+				std::cout << std::endl;
+				std::cout << "Calculator." << std::endl
+					<< "Usage: [expression]" << std::endl
+					<< "Example: 12+23*(4+2*3)" << std::endl
+					<< "Usage log(): log([expession])" << std::endl
+					<< "Usage sqrt(): sqrt([epression])" << std::endl
+					<< "Usage pow([epression], [extent]): ([epression])^([extent])" << std::endl
+					<< "Usage sin(): sin([expression])" << std::endl
+					<< "Usage cos(): cos([expression])" << std::endl
+					<< "Usage abs(): abs([expression])" << std::endl
+					<< "Example: log(5)+abs(-7.1)*sqrt(1+10)-sin(45)+cos(45)*2^(3+1)" << std::endl;
+			}
+		}
+		catch (const char *s) {
+			std::cerr << std::endl << "ERROR: " << s << std::endl;
+		}
+	}
+
+	return 0;
+}
+ 
+/********************************************************************
+Calculator.cpp
+*********************************************************************/
+
+#include "stdafx.h"
+#include "Calculator.h"
+#include <algorithm>
+#include <iostream>
+#include <math.h>
+
+//Описание функций
+struct FunctionDescription {
+	const char *name;
+	double(*fn)(double);
+};
+
+FunctionDescription func_desc[] = {
+				{ "abs", abs },
+				{ "cos", cos },
+				{ "sin", sin },
+				{ "log", log10},
+				{ "sqrt", sqrt},
+};
+
+// Типы лексем, используемых калькулятором
+enum  TokenType {
+	TT_Unknown,
+	TT_Number,
+	TT_End,
+	TT_Delimiter,
+	TT_Function,
+};
+
+// Структура лексемы
+struct Token {
+	TokenType type;				// тип
+	float     value;				// значение (если тип TT_Number)
+	char      delimiter;			// разделитель (если тип TT_Delimiter)
+	std::string   function;       // значение (если тип TT_Function)
+};
+
+// Парсер входного текста, разделяющий его на лексемы
+class Tokenizer {
+	std::istream& in;
+	Token         last;
+public:
+	Tokenizer(std::istream& str);
+	Token get_token();            // считать следующую лексему
+	Token get_last();             // вернуть предыдущую лексему
+};
+
+Tokenizer::Tokenizer(std::istream& in)
+	: in(in) {
+	last.type = TT_Unknown;
+}
+
+// Возвращает предыдущую считанную лексему
+// Если не было считано никакой лексемы - вызывает get_token
+// для чтения лексемы
+Token Tokenizer::get_last() {
+	if (last.type == TT_Unknown)
+		return get_token();
+	return last;
+}
+
+// Чтение лексемы из потока, определение типа лексемы
+Token Tokenizer::get_token()
+{
+	char c;
+	in >> c;
+
+	if (!in) { // Конец потока
+		last.type = TT_End;
+		return last;
+	}
+	// Разделители
+	const std::string delimiters("+-*/();=^");
+	std::string::size_type pos = delimiters.find(c);
+
+	if (pos != std::string::npos) {
+		last.type = TT_Delimiter;
+		last.delimiter = c;
+		return last;
+	}
+	// функции
+	if (isalpha(c))
+	{
+		last.type = TT_Function;
+		last.function.clear();
+		while (in)
+		{
+			if (isalpha(c))
+				last.function += c;
+			else
+				break;
+
+			in >> c;
+		}
+
+		in.putback(c);
+		//	  in >> last.delimiter;
+
+		return last;
+	}
+	// Числовое значение
+	if (isdigit(c) || c == '.') {
+		in.putback(c);
+		in >> last.value;
+		last.type = TT_Number;
+		return last;
+	}
+	throw "Unexpected lexem";
+}
+
+// Предварительное объявление вычислителя выражений
+float expr(Tokenizer& parser);
+
+// Чтение первичного - т.е. минимально неделимого элемента выражения
+// и обработка вычислительных функций.
+float prim(Tokenizer& parser) {
+	parser.get_token();
+
+	switch (parser.get_last().type) {
+	case TT_Number:
+	{
+		float v = parser.get_last().value;
+		parser.get_token();
+		return v;
+	}
+	case TT_Delimiter:
+		switch (parser.get_last().delimiter)
+		{
+		case '-':
+			return -prim(parser);
+		case '(':
+		{
+			float e = expr(parser);
+			if (parser.get_last().type == TT_Delimiter && parser.get_last().delimiter == ')') {
+				parser.get_token();
+				return e;
+			}
+			else
+				throw "\')\' expected";
+		}
+		default:
+			throw "primary expected";
+		}
+	case TT_Function:
+	{
+		// флаг показывающий правильно ли набрано имя функции
+		bool FunctionExist = false;
+		std::string fn_name = parser.get_last().function;
+		parser.get_token();
+
+		if (!(parser.get_last().type == TT_Delimiter && parser.get_last().delimiter == '('))
+		{
+			throw "\'(\' expected after function name";
+		}
+
+		for (int i = 0; i < sizeof(func_desc) / sizeof(func_desc[0]); i++)
+		{
+
+			if (!strcmp(fn_name.c_str(), func_desc[i].name))
+			{
+				float e = expr(parser);
+				if (parser.get_last().delimiter != ')')
+					throw "\')\' expected";
+				else
+				{
+					parser.get_token();
+					double rez = func_desc[i].fn(e);
+					return rez;
+					FunctionExist = true;
+				}
+			}
+		}
+		if (!FunctionExist)
+			throw "unknown function";
+	}
+	default:
+		throw "primary expected";
+	}
+}
+
+
+// Обрабатывает возведение в степень
+float aboba(Tokenizer& parser) {
+	float left = prim(parser); //вернула value
+	for (;;) {
+		if (parser.get_last().type == TT_Delimiter) {
+			switch (parser.get_last().delimiter)
+			{
+			case '^':
+				left = pow(left, prim(parser));
+				break;
+
+			default:
+				return left;
+			}
+		}
+		else
+			return left;
+	}
+	return left;
+}
+
+// Обрабатывает умножение и деление
+float term(Tokenizer& parser) {
+	float left = aboba(parser); //вернула value
+	for (;;) {
+		if (parser.get_last().type == TT_Delimiter) {
+			switch (parser.get_last().delimiter)
+			{
+			case '*':
+				left *= aboba(parser);
+				break;
+			case '/':
+			{ const float precision = 1.0e-5f;
+			float d = aboba(parser);
+			if (fabs(d) > precision) {
+				left /= d;
+			}
+			else
+				throw "Devide by zero";
+			}
+			break;
+			default:
+				return left;
+			}
+		}
+		else
+			return left;
+	}
+	return left;
+}
+
+// Обрабатывает сложение, вычитание
+float expr(Tokenizer& parser)
+{
+	float left = term(parser);
+	for (;;)
+	{
+		if (parser.get_last().type == TT_Delimiter)
+		{
+			switch (parser.get_last().delimiter)
+			{
+			case '+':
+				left += term(parser);
+				break;
+			case '-':
+				left -= term(parser);
+				break;
+			default:
+				return left;
+			}
+		}
+		else
+			return left;
+	}
+	return left;
+}
+
+// Вычислитель
+float evaluate_expression(std::istream& in)
+{
+	Tokenizer parser(in);
+	return expr(parser);
+}
+ 
+// stdafx.cpp : source file that includes just the standard includes
+// Calculator.pch will be the pre-compiled header
+// stdafx.obj will contain the pre-compiled type information
+
+#include "stdafx.h"
+
+//Calculator.h 
+#pragma once
+#include <iosfwd>
+
+float evaluate_expression(std::istream& in);
+ 
+// stdafx.h : include file for standard system include files,
+// or project specific include files that are used frequently, but
+// are changed infrequently
+//
+
+#pragma once
+
+#define WIN32_LEAN_AND_MEAN		// Exclude rarely-used stuff from Windows headers
+#include <stdio.h>
+#include <tchar.h>
