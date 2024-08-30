@@ -1,0 +1,352 @@
+main.py
+
+import tkinter as tk
+from random import randint
+import json
+from tkinter import messagebox
+import tkinter.filedialog
+from tkinter import simpledialog
+from tkinter import colorchooser
+from Animation import Animation
+
+if __name__ == '__main__':
+    animation = Animation(1280, 620, 30)
+    tk.mainloop()
+
+
+Animation.py
+
+import json
+import tkinter as tk
+from random import randint
+from tkinter import messagebox, filedialog
+
+from Round import Circle
+
+
+class Animation:
+    def __init__(self, width, height, fps=30):
+        self.width = width
+        self.height = height
+        self.fps = fps
+        self.root = tk.Tk()
+        self.canvas = tk.Canvas(self.root, width=width, height=height)
+        self.canvas.pack()
+        self.circle = []
+        self.copied_circle = None
+        self.canvas.bind('<Button-3>', self.on_right_click)
+        self.radius_direction = 1
+        self.is_animating = False
+        self.history = []
+        self.create_menu()
+
+
+    def on_right_click(self, event):
+        if not self.copied_circle:
+            return
+        menu = tk.Menu(self.canvas, tearoff=0)
+        menu.add_command(label='Paste', command=lambda: self.paste(event.x, event.y))
+        menu.post(event.x_root, event.y_root)
+
+    def paste(self, x, y):
+        if not self.copied_circle:
+            return
+        circle = Circle(
+            self.canvas,
+            x,
+            y,
+            self.copied_circle['radius'],
+            self.copied_circle['color'],
+            self
+        )
+        self.circle.append(circle)
+        self.history.append(('paste', circle))
+
+    def create_circle(self):
+        self.clear()
+        id = 0
+        for _ in range(30):
+            while True:
+                radius = randint(4, 100)
+                x = randint(radius, self.width - radius)
+                y = randint(radius, self.height - radius)
+                if all(
+                        ((circle.x - circle.radius) - (x + radius) > 0 or (x - radius) - (circle.x + circle.radius) > 0) or
+                        ((circle.y - circle.radius) - (y + radius) > 0 or (y - radius) - (circle.y + circle.radius) > 0)
+                        for circle in self.circle
+                ):
+                    break
+            color = '#{:06x}'.format(randint(0, 0xFFFFFF))
+
+            circle = Circle(self.canvas, x, y, radius, color, self, id=id)
+            id += 1
+            self.circle.append(circle)
+
+    def toggle_animation(self):
+        self.is_animating = not self.is_animating
+        if self.is_animating:
+            self.animate()
+
+    def animate(self):
+        if self.is_animating:
+            for circle in self.circle:
+                height = self.height
+                width = self.width
+                if circle.y + circle.radius + circle.radius > height or circle.y < 0:  # Если окружность вышла за границу экрана
+                    circle.color = circle.change_color(ask=0)
+                    circle.speedY = -circle.speedY
+                    self.history.append(('move', circle, circle.speedX, circle.speedY))
+                    circle.random_move(randint(circle.radius, width - circle.radius), randint(circle.radius, height - circle.radius), circle.radius)
+
+                if circle.x + circle.radius + circle.radius > width or circle.x < 0:
+                    circle.color = circle.change_color(ask=0)
+                    circle.speedX = -circle.speedX
+                    self.history.append(('move', circle, circle.speedX, circle.speedY))
+                    #self.canvas.moveto(int(circle.item), randint(circle.radius, self.width - circle.radius - 30), randint(circle.radius, self.height - circle.radius - 30))
+                    circle.random_move(randint(circle.radius, width - circle.radius), randint(circle.radius, height - circle.radius), circle.radius)
+
+                circle.move(circle.speedX, circle.speedY)
+            ms = int(1000 / self.fps)
+            self.root.after(ms, self.animate)
+
+    def create_menu(self):
+        menu = tk.Menu(self.root)
+        file = tk.Menu(menu, tearoff=0)
+        file.add_command(label='New configuration', command=self.create_circle)
+        file.add_command(label='Open file', command=self.load_config)
+        file.add_command(label='Save file as...', command=self.save_config)
+        menu.add_cascade(label='File', menu=file)
+        edit = tk.Menu(menu, tearoff=0)
+        edit.add_command(label='Undo', command=self.undo)
+        edit.add_command(label='Clear', command=self.clear)
+        edit.add_command(label='Restart', command=self.restart)
+        menu.add_cascade(label='Edit', menu=edit)
+
+        action = tk.Menu(menu, tearoff=0)
+        action.add_command(label='Start simulation', command=self.start)
+        action.add_command(label='Stop simulation', command=self.stop)
+        menu.add_cascade(label='Action', menu=action)
+        self.root.config(menu=menu)
+
+    def helpmenu(self):
+        # Show message box with information about the program
+        messagebox.showinfo('Help')
+
+    def restart(self):
+        self.clear()
+        self.create_circle()
+
+    def stop(self):
+        self.is_animating = False
+
+    def start(self):
+        if not self.is_animating:
+            self.is_animating = True
+            self.animate()
+
+    def load_config(self):
+        filename = tk.filedialog.askopenfilename(
+            title='Select a config file',
+            filetypes=(('JSON files', '*.json'), ('All files', '*.*'))
+        )
+        if not filename:
+            return
+        self.clear()
+        with open(filename, 'r') as f:
+            config = json.load(f)
+            for circle_config in config['circles']:
+                x = circle_config['x']
+                y = circle_config['y']
+                radius = circle_config['radius']
+                color = circle_config['color']
+                circle = Circle(self.canvas, x, y, radius, color, self)
+                self.circle.append(circle)
+
+    def save_config(self):
+        filename = filedialog.asksaveasfilename(
+            title='Save config as',
+            defaultextension='.json',
+            filetypes=(('JSON files', '*.json'), ('All files', '*.*'))
+        )
+        if not filename:
+            return
+        config = {'circles': []}
+        for circle in self.circle:
+            circle_config = {
+                'x': circle.x,
+                'y': circle.y,
+                'radius': circle.radius,
+                'color': circle.color
+            }
+            config['circles'].append(circle_config)
+        with open(filename, 'w') as f:
+            json.dump(config, f)
+
+    def undo(self):
+        if not self.history:
+            return
+        action, *args = self.history.pop()
+        if action == 'move':
+            circle, x_offset, y_offset = args
+            circle.move(x_offset, y_offset)
+        elif action == 'radius':
+            circle, radius = args
+            circle.set_radius(radius)
+        elif action == 'paste':
+            circle = args[0]
+            self.canvas.delete(circle.item)
+            self.circle.remove(circle)
+        elif action == 'color':
+            circle, color = args
+            circle.canvas.itemconfig(circle.item, fill=color, outline=color)
+            circle.color = color
+        elif action == 'delete':
+            circle = args[0]
+            self.circle.append(circle)
+            circle.item = self.canvas.create_circle(
+                circle.x - circle.radius,
+                circle.y - circle.radius,
+                circle.x + circle.radius,
+                circle.y + circle.radius,
+                fill=circle.color,
+                outline=circle.color
+            )
+            self.canvas.tag_bind(circle.item, '<Button-1>', circle.on_click)
+            self.canvas.tag_bind(circle.item, '<B1-Motion>', circle.on_drag)
+            self.canvas.tag_bind(circle.item, '<Button-3>', circle.on_right_click)
+        elif action == 'clear':
+            circles = args[0]
+            for circle in circles:
+                self.circle.append(circle)
+                circle.item = self.canvas.create_oval(
+                    circle.x - circle.radius,
+                    circle.y - circle.radius,
+                    circle.x + circle.radius,
+                    circle.y + circle.radius,
+                    fill=circle.color,
+                    outline=circle.color
+                )
+                self.canvas.tag_bind(circle.item, '<Button-1>', circle.on_click)
+                self.canvas.tag_bind(circle.item, '<B1-Motion>', circle.on_drag)
+                self.canvas.tag_bind(circle.item, '<Button-3>', circle.on_right_click)
+
+    def clear(self):
+        self.history.append(('clear', list(self.circle)))
+        self.canvas.delete('all')
+        self.circle = []
+
+Round.py
+
+import tkinter as tk
+import random
+from tkinter import simpledialog, colorchooser
+
+class Circle:
+    def __init__(self, canvas, x, y, radius, color, animation, id=0):
+        self.increase = False
+        self.canvas = canvas
+        self.x = x
+        self.y = y
+        self.id = id
+        self.radius = radius
+        self.speedX = random.randint(1, 5)
+        self.speedY = random.randint(1, 5)
+        self.color = color
+        self.animation = animation
+        self.item = canvas.create_oval(
+            x - radius,
+            y - radius,
+            x + radius,
+            y + radius,
+            fill=color,
+            outline=color
+        )
+        print(id)
+        self.canvas.tag_bind(self.item, '<Button-1>', self.on_click)
+        self.canvas.tag_bind(self.item, '<B1-Motion>', self.on_drag)
+        self.canvas.tag_bind(self.item, '<Button-3>', self.on_right_click)
+
+    def change_radius(self):
+        new_radius = simpledialog.askinteger("Input", "Enter new radius",
+                                             parent=self.canvas, minvalue=1, maxvalue=100)
+        if new_radius:
+            self.animation.history.append(('radius', self, self.radius))
+            self.radius = new_radius
+            left = self.x - new_radius
+            top = self.y - new_radius
+            right = self.x + new_radius
+            bottom = self.y + new_radius
+            self.canvas.coords(self.item, left, top, right, bottom)
+
+    def on_right_click(self, event):
+        menu = tk.Menu(self.canvas, tearoff=0)
+        menu.add_command(label='Copy', command=self.copy)
+        menu.add_command(label='Change color', command=self.change_color)
+        menu.add_command(label='Change radius', command=self.change_radius)
+        menu.add_command(label='Delete', command=self.delete)
+        menu.post(event.x_root, event.y_root)
+
+    def delete(self):
+        self.animation.history.append(('delete', self))
+        self.canvas.delete(self.item)
+        self.animation.circle.remove(self)
+
+    def copy(self):
+        self.animation.copied_circle = {
+            'x': self.x,
+            'y': self.y,
+            'radius': self.radius,
+            'color': self.color
+        }
+
+    def change_color(self, ask=1):
+        if ask == 1:
+            color = colorchooser.askcolor()[1]
+
+        else:
+            for j in range(20):
+                colors = ["#" + ''.join([random.choice('ABCDEF0123456789') for i in
+                                         range(6)])]
+            color = colors
+
+        if color:
+            self.animation.history.append(('color', self, self.color))
+            self.canvas.itemconfig(self.item, fill=color, outline=color)
+            self.color = color
+        if ask == 0:
+            return color
+
+
+    def move(self, x_offset, y_offset):
+        self.canvas.move(self.item, x_offset, y_offset)
+        self.x += x_offset
+        self.y += y_offset
+
+    def set_radius(self, new_radius):
+        self.radius = new_radius
+        left = self.x - new_radius
+        top = self.y - new_radius
+        right = self.x + new_radius
+        bottom = self.y + new_radius
+        self.canvas.coords(self.item, left, top, right, bottom)
+
+    def on_click(self, event):
+        self.last_x = event.x
+        self.last_y = event.y
+        self.start_x = self.x
+        self.start_y = self.y
+
+    def random_move(self, x_offset, y_offset, radius):
+        self.canvas.moveto(self.item, x_offset, y_offset)
+        self.x = x_offset
+        self.y = y_offset
+        self.radius = radius
+
+    def on_drag(self, event):
+        dx = event.x - self.last_x
+        dy = event.y - self.last_y
+        self.move(dx, dy)
+        if not self.animation.is_animating:
+            self.animation.history.append(('move', self, self.start_x - self.x, self.start_y - self.y))
+        self.last_x = event.x
+        self.last_y = event.y
